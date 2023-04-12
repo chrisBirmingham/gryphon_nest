@@ -1,0 +1,55 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'gryphon_nest'
+require 'optparse'
+
+DEFAULT_PORT = 8000
+
+# @param options [Hash]
+# @return [Array]
+def parse_arguments(options)
+  parser = OptionParser.new do |opts|
+    opts.banner = 'Usage: nest [build|serve] [options]'
+
+    opts.on('-p', '--port [PORT]', Integer, 'Port to run dev server on')
+
+    opts.on('-h', '--help', 'Show this message') do
+      puts opts
+      exit
+    end
+
+    opts.on('-v', '--version', 'Print version') do
+      puts GryphonNest::VERSION
+      exit
+    end
+  end
+
+  parser.parse!(into: options)
+
+  command = ARGV.fetch(0, 'build')
+
+  unless %w[build serve].include?(command)
+    warn "Unknown command #{command}"
+    warn parser
+    exit(1)
+  end
+
+  [command, options]
+rescue OptionParser::ParseError => e
+  warn e.message
+  warn parser
+  exit(1)
+end
+
+def main
+  command, opts = parse_arguments({ port: DEFAULT_PORT })
+
+  GryphonNest::build_website
+  GryphonNest::serve_website(opts[:port]) if command == 'serve'
+rescue StandardError => e
+  warn e.message
+  exit(1)
+end
+
+main
