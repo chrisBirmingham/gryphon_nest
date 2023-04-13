@@ -165,8 +165,8 @@ module GryphonNest
 
       data = {}
 
-      Dir.glob("#{DATA_DIR}/*.yaml") do |f|
-        key = File.basename(f, '.yaml')
+      Dir.glob("#{DATA_DIR}/*.{yaml,yml}") do |f|
+        key = File.basename(f, '.*')
         data[key] = read_yaml(f)
       end
 

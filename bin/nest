@@ -6,9 +6,13 @@ require 'optparse'
 
 DEFAULT_PORT = 8000
 
+options = {
+  port: DEFAULT_PORT
+}
+
 # @param options [Hash]
 # @return [Array]
-def parse_arguments(options)
+begin
   parser = OptionParser.new do |opts|
     opts.banner = 'Usage: nest [build|serve] [options]'
 
@@ -35,21 +39,13 @@ def parse_arguments(options)
     exit(1)
   end
 
-  [command, options]
+  GryphonNest.build_website
+  GryphonNest.serve_website(opts[:port]) if command == 'serve'
 rescue OptionParser::ParseError => e
   warn e.message
   warn parser
   exit(1)
-end
-
-def main
-  command, opts = parse_arguments({ port: DEFAULT_PORT })
-
-  GryphonNest::build_website
-  GryphonNest::serve_website(opts[:port]) if command == 'serve'
 rescue StandardError => e
   warn e.message
   exit(1)
 end
-
-main
