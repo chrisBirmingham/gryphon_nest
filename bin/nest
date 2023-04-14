@@ -40,7 +40,7 @@ begin
   end
 
   GryphonNest.build_website
-  GryphonNest.serve_website(opts[:port]) if command == 'serve'
+  GryphonNest.serve_website(options[:port]) if command == 'serve'
 rescue OptionParser::ParseError => e
   warn e.message
   warn parser

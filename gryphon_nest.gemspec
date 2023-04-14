@@ -12,13 +12,13 @@ Gem::Specification.new do |spec|
 
   spec.summary = 'Yet another static site generator'
   spec.description = 'A opinionated static website generator for html using mustache'
-  #spec.homepage = "TODO: Put your gem's website or public repo URL here."
+  spec.homepage = 'https://github.com/chrisBirmingham/gryphon_nest'
   spec.required_ruby_version = '>= 2.6.0'
 
-  #spec.metadata["homepage_uri"] = spec.homepage
-  #spec.metadata["source_code_uri"] = "TODO: Put your gem's public repo URL here."
+  spec.metadata['homepage_uri'] = spec.homepage
+  spec.metadata['source_code_uri'] = spec.homepage
 
-  spec.files = Dir['lib/**/*']
+  spec.files = Dir['lib/**/*', 'LICENSE']
   spec.executables << 'nest'
   spec.require_paths = ['lib']
   spec.license = 'Unlicense'
@@ -26,4 +26,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'htmlbeautifier', '~> 1.0'
   spec.add_dependency 'mustache', '~> 1.0'
   spec.add_dependency 'webrick', '~> 1.0'
+
+  spec.add_development_dependency 'bundler', '~> 2.3'
+  spec.add_development_dependency 'rake', '~> 13.0'
 end

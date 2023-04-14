@@ -1,29 +1,73 @@
-# GryphonNest
+# Gryphon Nest
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/gryphon_nest`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+Yet another static website builder based on the script originally used to build my own website. Build for those who like to work with HTML and [Mustache](https://mustache.github.io/), most likely just me.
 
 ## Installation
 
-Install the gem and add to the application's Gemfile by executing:
+To install run:
 
-    $ bundle add gryphon_nest
-
-If bundler is not being used to manage dependencies, install the gem by executing:
-
-    $ gem install gryphon_nest
+```sh
+[sudo] gem install gryphon_nest
+```
 
 ## Usage
 
-TODO: Write usage instructions here
+### Commands
 
-## Development
+Gryphon provides the executable script `nest` which supports two commands, build and serve:
 
-After checking out the repo, run `bin/setup` to install dependencies. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+* build: Generates your website and stores it in the `__site` folder.
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+* serve: Rebuilds your website and starts a local server for viewing the built site.
 
-## Contributing
+## Project Strucutre
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/gryphon_nest.
+Gryphon Nest requires this folder structure:
+
+```txt
+project_directory/
+        content/
+            index.mustache
+        layouts/
+            main.mustache
+        assets/
+            main.css
+            favicon.ico
+        data/
+            index.yaml
+```
+
+### Content
+
+This folder stores your html files as mustache template files. All files will be expanded to `__site/fileName/index.html` e.g. contact.mustache -> `__site/contact/index.html`, except for the `index.mustache` file which is saved as `index.html`
+
+### Layouts
+
+An optional folder which stores mustache files that wrap around the content of the files stored in the content folder. If it exists, gryphon will use the  `main.mustache` file unless you specify an override `layout` key in the associated datafile.
+
+All layout files follow this basic format.
+
+```mustache
+<!DOCTYPE html>
+<html lang="en-GB">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{title}}</title>
+    <link rel="stylesheet" href="styles/main.css">
+  </head>
+  <body>
+    {{{yield}}}
+  </body>
+</html>
+```
+
+The `yield` block is replaced with the content of the transformed content file.
+
+### Data
+
+An optional folder which stores yaml files containing the context for mustache when building your webpages. If a content file has an associated yaml file e.g. `content/contact.mustache` and `data/conact.yaml`, gryphon will use the file while rendering the final html file. The context will also be available in the layout file.
+
+### Assets
+
+Folder for storing additonal static files such as stylesheets and images. Copies them as is into the `__site` folder in the same folder structure.
