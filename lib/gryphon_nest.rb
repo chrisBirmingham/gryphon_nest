@@ -200,6 +200,7 @@ module GryphonNest
 
     # @param port [Integer]
     def serve_website(port)
+      put "Running local server on #{port}"
       server = WEBrick::HTTPServer.new(Port: port, DocumentRoot: BUILD_DIR)
       # Trap ctrl c so we don't get the horrible stack trace
       trap('INT') { server.shutdown }

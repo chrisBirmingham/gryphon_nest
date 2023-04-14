@@ -16,7 +16,7 @@ To install run:
 
 Gryphon provides the executable script `nest` which supports two commands, build and serve:
 
-* build: Generates your website and stores it in the `__site` folder.
+* build: Generates your website and stores it in the `_site` folder.
 
 * serve: Rebuilds your website and starts a local server for viewing the built site.
 
@@ -39,7 +39,7 @@ project_directory/
 
 ### Content
 
-This folder stores your html files as mustache template files. All files will be expanded to `__site/fileName/index.html` e.g. contact.mustache -> `__site/contact/index.html`, except for the `index.mustache` file which is saved as `index.html`
+This folder stores your html files as mustache template files. All files will be expanded to `_site/fileName/index.html` e.g. contact.mustache -> `_site/contact/index.html`, except for the `index.mustache` file which is saved as `index.html`
 
 ### Layouts
 
@@ -70,4 +70,4 @@ An optional folder which stores yaml files containing the context for mustache w
 
 ### Assets
 
-Folder for storing additonal static files such as stylesheets and images. Copies them as is into the `__site` folder in the same folder structure.
+Folder for storing additonal static files such as stylesheets and images. Copies them as is into the `_site` folder in the same folder structure.
