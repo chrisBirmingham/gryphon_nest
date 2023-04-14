@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
   spec.email = ['chris.birmingham@hotmail.co.uk']
 
   spec.summary = 'Yet another static site generator'
-  spec.description = 'A opinionated static website generator for html using mustache'
+  spec.description = 'A slightly opinionated static website generator for those who like working in html and mustache'
   spec.homepage = 'https://github.com/chrisBirmingham/gryphon_nest'
   spec.required_ruby_version = '>= 2.6.0'
 
