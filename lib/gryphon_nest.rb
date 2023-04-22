@@ -17,6 +17,32 @@ module GryphonNest
     LAYOUT_DIR = 'layouts'
     TEMPLATE_EXT = '.mustache'
 
+    def build_website
+      raise "Content directory doesn't exist" unless Dir.exist?(CONTENT_DIR)
+
+      existing_files = []
+      if Dir.exist?(BUILD_DIR)
+        existing_files = filter_glob("#{BUILD_DIR}/**/*")
+      else
+        Dir.mkdir(BUILD_DIR)
+      end
+
+      existing_files = existing_files.difference(process_content)
+      existing_files = existing_files.difference(copy_assets)
+      cleanup(existing_files)
+    end
+
+    # @param port [Integer]
+    def serve_website(port)
+      puts "Running local server on #{port}"
+      server = WEBrick::HTTPServer.new(Port: port, DocumentRoot: BUILD_DIR)
+      # Trap ctrl c so we don't get the horrible stack trace
+      trap('INT') { server.shutdown }
+      server.start
+    end
+
+    private
+
     # @param template_name [String]
     # @return [String]
     def get_output_name(template_name)
@@ -54,12 +80,78 @@ module GryphonNest
       File.write(path, content)
     end
 
-    # @param layouts [Hash]
-    # @param data [Hash]
+    # @param src [String]
+    # @param dest [String]
+    # @param layout_file [String]
+    # @param context_file [String]
+    # @return [Boolean]
+    def can_create_html_file?(src, dest, layout_file, context_file)
+      return true unless File.exist?(dest)
+
+      src_mtime = File.mtime(src)
+      dest_mtime = File.mtime(dest)
+
+      return true unless src_mtime > dest_mtime
+
+      if File.exist?(layout_file)
+        layout_mtime = File.mtime(layout_file)
+        return true if layout_mtime > dest_mtime
+      end
+
+      if File.exist?(context_file)
+        context_mtime = File.mtime(context_file)
+        return true if context_mtime > dest_mtime
+      end
+
+      false
+    end
+
+    # @param name [String]
+    # @param context [Hash]
+    # @return [String]
+    def get_layout_file(name, context)
+      path = Pathname.new(LAYOUT_DIR)
+
+      if context.key?(:layout)
+        layout = context[:layout]
+        path = path.join(layout)
+
+        raise "#{name} requires layout file #{layout} but it doesn't exist or can't be read" unless File.exist?(path)
+
+        return path.to_s
+      end
+
+      path.join('main.mustache').to_s
+    end
+
+    # @param path [String]
+    # @return [Hash]
+    def read_context_file(path)
+      return {} if path == ''
+
+      return {} unless File.exist?(path)
+
+      File.open(path) do |yaml|
+        YAML.safe_load(yaml)
+      end
+    end
+
+    # @param name [String]
+    # @return [String]
+    def get_context_file(name)
+      basename = File.basename(name, TEMPLATE_EXT)
+
+      Dir.glob("#{DATA_DIR}/#{basename}.{yaml,yml}") do |f|
+        return f
+      end
+
+      ''
+    end
+
     # @return [Array]
-    def process_content(layouts, data)
+    def process_content
       created_files = []
-      renderer = Renderer.new(layouts)
+      renderer = Renderer.new
 
       filter_glob("#{CONTENT_DIR}/**/*").each do |template|
         if File.extname(template) != TEMPLATE_EXT
@@ -67,11 +159,16 @@ module GryphonNest
           next
         end
 
-        key = File.basename(template, TEMPLATE_EXT)
-        content = renderer.render(template, data.fetch(key, {}))
-        filename = get_output_name(template)
-        save_html_file(filename, content)
-        created_files << filename
+        dest_file = get_output_name(template)
+        context_file = get_context_file(template)
+        context = read_context_file(context_file)
+        layout_file = get_layout_file(template, context)
+
+        next unless can_create_html_file?(template, dest_file, layout_file, context_file)
+
+        content = renderer.render(template, layout_file, context)
+        save_html_file(dest_file, content)
+        created_files << dest_file
       end
 
       created_files
@@ -107,74 +204,12 @@ module GryphonNest
       copied_files
     end
 
-    # @return [Hash]
-    def read_layout_files
-      return {} unless Dir.exist?(LAYOUT_DIR)
-
-      layouts = {}
-
-      Dir.glob("#{LAYOUT_DIR}/*#{TEMPLATE_EXT}") do |f|
-        key = File.basename(f, TEMPLATE_EXT)
-        layouts[key] = File.read(f)
-      end
-
-      layouts
-    end
-
-    # @param file [String]
-    # @return [Hash]
-    def read_yaml(file)
-      File.open(file) do |yaml|
-        YAML.safe_load(yaml)
-      end
-    end
-
-    # @return [Hash]
-    def read_data_files
-      return {} unless Dir.exist?(DATA_DIR)
-
-      data = {}
-
-      Dir.glob("#{DATA_DIR}/*.{yaml,yml}") do |f|
-        key = File.basename(f, '.*')
-        data[key] = read_yaml(f)
-      end
-
-      data
-    end
-
     # @param junk_files [Array]
     def cleanup(junk_files)
       junk_files.each do |f|
         puts "Deleting #{f}"
         FileUtils.remove_file(f)
       end
-    end
-
-    def build_website
-      raise "Content directory doesn't exist" unless Dir.exist?(CONTENT_DIR)
-
-      existing_files = []
-      if Dir.exist?(BUILD_DIR)
-        existing_files = filter_glob("#{BUILD_DIR}/**/*")
-      else
-        Dir.mkdir(BUILD_DIR)
-      end
-
-      data = read_data_files
-      layouts = read_layout_files
-      existing_files = existing_files.difference(process_content(layouts, data))
-      existing_files = existing_files.difference(copy_assets)
-      cleanup(existing_files)
-    end
-
-    # @param port [Integer]
-    def serve_website(port)
-      puts "Running local server on #{port}"
-      server = WEBrick::HTTPServer.new(Port: port, DocumentRoot: BUILD_DIR)
-      # Trap ctrl c so we don't get the horrible stack trace
-      trap('INT') { server.shutdown }
-      server.start
     end
   end
 end
