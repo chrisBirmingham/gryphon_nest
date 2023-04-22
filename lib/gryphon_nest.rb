@@ -1,13 +1,12 @@
 # frozen_string_literal: true
 
 require 'fileutils'
-require 'htmlbeautifier'
-require 'mustache'
 require 'pathname'
 require 'webrick'
 require 'yaml'
 
 module GryphonNest
+  autoload :Renderer, 'gryphon_nest/renderer'
   autoload :VERSION, 'gryphon_nest/version'
 
   class << self
@@ -33,38 +32,6 @@ module GryphonNest
       path.to_s
     end
 
-    # @param name [String]
-    # @param layouts [Hash]
-    # @param template_data [Hash]
-    # @return [String]
-    def get_template_layout(name, layouts, template_data)
-      if template_data.key?(:layout)
-        val = template_data[:layout]
-
-        raise "#{name} requires layout file #{val} but it isn't a known layout" unless layouts.key?(val)
-
-        layouts[val]
-      else
-        layouts.fetch('main', '{{{yield}}}')
-      end
-    end
-
-    # @param name [String]
-    # @param content [String]
-    # @param layouts [Hash]
-    # @param data [Hash]
-    # @return [String]
-    def render_template(name, content, layouts, data)
-      key = File.basename(name, TEMPLATE_EXT)
-      template_data = data.fetch(key, {})
-
-      content = Mustache.render(content, template_data)
-
-      layout = get_template_layout(name, layouts, template_data)
-      template_data[:yield] = content
-      Mustache.render(layout, template_data)
-    end
-
     # @params path [String]
     # @return [Array]
     def filter_glob(path)
@@ -73,11 +40,26 @@ module GryphonNest
       end
     end
 
+    # @param path [String]
+    # @param content [String]
+    def save_html_file(path, content)
+      dir = File.dirname(path)
+
+      unless Dir.exist?(dir)
+        puts "Creating #{dir}"
+        Dir.mkdir(dir)
+      end
+
+      puts "Creating #{path}"
+      File.write(path, content)
+    end
+
     # @param layouts [Hash]
     # @param data [Hash]
     # @return [Array]
     def process_content(layouts, data)
       created_files = []
+      renderer = Renderer.new(layouts)
 
       filter_glob("#{CONTENT_DIR}/**/*").each do |template|
         if File.extname(template) != TEMPLATE_EXT
@@ -85,23 +67,11 @@ module GryphonNest
           next
         end
 
-        File.open(template) do |f|
-          content = render_template(template, f.read, layouts, data)
-          content = HtmlBeautifier.beautify(content)
-          html_file = get_output_name(template)
-
-          dir = File.dirname(html_file)
-
-          unless Dir.exist?(dir)
-            puts "Creating #{dir}"
-            Dir.mkdir(dir)
-          end
-
-          File.write(html_file, content)
-          puts "Creating #{html_file}"
-
-          created_files << html_file
-        end
+        key = File.basename(template, TEMPLATE_EXT)
+        content = renderer.render(template, data.fetch(key, {}))
+        filename = get_output_name(template)
+        save_html_file(filename, content)
+        created_files << filename
       end
 
       created_files
@@ -128,10 +98,10 @@ module GryphonNest
 
         next unless can_copy_asset?(asset, dest)
 
+        puts "Copying #{asset} to #{dest}"
         dest_dir = File.dirname(dest)
         FileUtils.makedirs(dest_dir)
         FileUtils.copy_file(asset, dest)
-        puts "Copying #{asset} to #{dest}"
       end
 
       copied_files
@@ -200,7 +170,7 @@ module GryphonNest
 
     # @param port [Integer]
     def serve_website(port)
-      put "Running local server on #{port}"
+      puts "Running local server on #{port}"
       server = WEBrick::HTTPServer.new(Port: port, DocumentRoot: BUILD_DIR)
       # Trap ctrl c so we don't get the horrible stack trace
       trap('INT') { server.shutdown }
