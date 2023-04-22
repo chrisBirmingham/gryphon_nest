@@ -131,7 +131,9 @@ module GryphonNest
 
       return {} unless File.exist?(path)
 
-      YAML.safe_load_file(path)
+      File.open(path) do |yaml|
+        YAML.safe_load(yaml)
+      end
     end
 
     # @param name [String]
