@@ -66,7 +66,7 @@ The `yield` block is replaced with the content of the transformed content file.
 
 ### Data
 
-An optional folder which stores yaml files containing the context for mustache when building your webpages. If a content file has an associated yaml file e.g. `content/contact.mustache` and `data/conact.yaml`, gryphon will use the file while rendering the final html file. The context will also be available in the layout file.
+An optional folder which stores yaml files containing the context for mustache when building your webpages. If a content file has an associated yaml file e.g. `content/contact.mustache` and `data/contact.yaml`, gryphon will use the file while rendering the final html file. The context will also be available in the layout file.
 
 ### Assets
 
