@@ -112,8 +112,8 @@ module GryphonNest
     def get_layout_file(name, context)
       path = Pathname.new(LAYOUT_DIR)
 
-      if context.key?(:layout)
-        layout = context[:layout]
+      if context.key?('layout')
+        layout = context['layout']
         path = path.join(layout)
 
         raise "#{name} requires layout file #{layout} but it doesn't exist or can't be read" unless File.exist?(path)
@@ -131,9 +131,7 @@ module GryphonNest
 
       return {} unless File.exist?(path)
 
-      File.open(path) do |yaml|
-        YAML.safe_load(yaml)
-      end
+      YAML.safe_load_file(path)
     end
 
     # @param name [String]
