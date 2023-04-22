@@ -91,7 +91,7 @@ module GryphonNest
       src_mtime = File.mtime(src)
       dest_mtime = File.mtime(dest)
 
-      return true unless src_mtime > dest_mtime
+      return true if src_mtime > dest_mtime
 
       if File.exist?(layout_file)
         layout_mtime = File.mtime(layout_file)
@@ -164,11 +164,11 @@ module GryphonNest
         context = read_context_file(context_file)
         layout_file = get_layout_file(template, context)
 
+        created_files << dest_file
         next unless can_create_html_file?(template, dest_file, layout_file, context_file)
 
         content = renderer.render(template, layout_file, context)
         save_html_file(dest_file, content)
-        created_files << dest_file
       end
 
       created_files
