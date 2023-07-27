@@ -3,12 +3,20 @@
 
 require 'gryphon_nest'
 require 'optparse'
+require 'sysexits'
 
 DEFAULT_PORT = 8000
 
 options = {
   port: DEFAULT_PORT
 }
+
+# @param msg [String]
+# @param parser [OptionParser]
+def usage_error(msg, parser)
+  warn(msg, parser)
+  Sysexits.exit(:usage)
+end
 
 # @param options [Hash]
 # @return [Array]
@@ -33,19 +41,13 @@ begin
 
   command = ARGV.fetch(0, 'build')
 
-  unless %w[build serve].include?(command)
-    warn "Unknown command #{command}"
-    warn parser
-    exit(1)
-  end
+  usage_error("Unknown command #{command}", parser) unless %w[build serve].include?(command)
 
   GryphonNest.build_website
   GryphonNest.serve_website(options[:port]) if command == 'serve'
 rescue OptionParser::ParseError => e
+  usage_error(e.message, parser)
+rescue GryphonNest::NotFoundError => e
   warn e.message
-  warn parser
-  exit(1)
-rescue StandardError => e
-  warn e.message
-  exit(1)
+  Sysexits.exit(:input_missing)
 end

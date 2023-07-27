@@ -1,9 +1,10 @@
 PATH
   remote: .
   specs:
-    gryphon_nest (1.0.0)
+    gryphon_nest (1.2.0)
       htmlbeautifier (~> 1.0)
       mustache (~> 1.0)
+      sysexits (~> 1.2)
       webrick (~> 1.0)
 
 GEM
@@ -12,7 +13,8 @@ GEM
     htmlbeautifier (1.4.2)
     mustache (1.1.1)
     rake (13.0.6)
-    webrick (1.7.0)
+    sysexits (1.2.0)
+    webrick (1.8.1)
 
 PLATFORMS
   x64-mingw-ucrt
