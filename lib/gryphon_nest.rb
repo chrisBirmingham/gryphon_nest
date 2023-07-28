@@ -6,6 +6,7 @@ require 'webrick'
 require 'yaml'
 
 module GryphonNest
+  autoload :NotFoundError, 'gryphon_nest/not_found_error'
   autoload :Renderer, 'gryphon_nest/renderer'
   autoload :VERSION, 'gryphon_nest/version'
 
@@ -18,7 +19,7 @@ module GryphonNest
     TEMPLATE_EXT = '.mustache'
 
     def build_website
-      raise "Content directory doesn't exist" unless Dir.exist?(CONTENT_DIR)
+      raise NotFoundError, "Content directory doesn't exist" unless Dir.exist?(CONTENT_DIR)
 
       existing_files = []
       if Dir.exist?(BUILD_DIR)
@@ -116,7 +117,7 @@ module GryphonNest
         layout = context['layout']
         path = path.join(layout)
 
-        raise "#{name} requires layout file #{layout} but it doesn't exist or can't be read" unless File.exist?(path)
+        raise NotFoundError, "#{name} requires layout file #{layout} but it doesn't exist or can't be read" unless File.exist?(path)
 
         return path.to_s
       end

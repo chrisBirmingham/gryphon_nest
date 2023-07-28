@@ -25,6 +25,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'htmlbeautifier', '~> 1.0'
   spec.add_dependency 'mustache', '~> 1.0'
+  spec.add_dependency 'sysexits', '~> 1.2'
   spec.add_dependency 'webrick', '~> 1.0'
 
   spec.add_development_dependency 'bundler', '~> 2.3'
