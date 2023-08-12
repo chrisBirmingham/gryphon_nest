@@ -5,51 +5,35 @@ require 'mustache'
 
 module GryphonNest
   # Renders mustache templates to html
-  class Renderer
-    # @param layouts [Array]
-    def initialize
+  class Renderer < Mustache
+    # @param options [Hash]
+    def initialize(options = {})
       @layouts = {}
+      super
     end
 
     # @param template [String]
-    # @param layout [String]
     # @param context [Hash]
     # @return [String]
-    def render(template, layout, context)
-      File.open(template) do |f|
-        content = render_template(f.read, context)
-        layout = get_template_layout(layout)
+    def render_file(template, context)
+      content = super(template, context)
 
-        unless layout.nil?
-          context[:yield] = content
-          content = render_template(layout, context)
-        end
-
-        HtmlBeautifier.beautify(content)
+      if context.key?('layout')
+        context['yield'] = content
+        content = super(context['layout'], context)
       end
+
+      HtmlBeautifier.beautify(content)
     end
 
-    private
+    # @param name [String]
+    # return [String]
+    def partial(name)
+      return @layouts[name] if @layouts.key?(name)
 
-    # @param content [String]
-    # @param context [Hash]
-    # @return [String]
-    def render_template(content, context)
-      Mustache.render(content, context)
-    end
-
-    # @param path [String]
-    # @return [String|null]
-    def get_template_layout(path)
-      return @layouts[path] if @layouts.key?(path)
-
-      return unless File.exist?(path)
-
-      File.open(path) do |file|
-        content = file.read
-        @layouts[path] = content
-        return content
-      end
+      content = File.read(name)
+      @layouts[name] = content
+      content
     end
   end
 end

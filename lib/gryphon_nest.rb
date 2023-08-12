@@ -128,9 +128,7 @@ module GryphonNest
     # @param path [String]
     # @return [Hash]
     def read_context_file(path)
-      return {} if path == ''
-
-      return {} unless File.exist?(path)
+      return {} if path == '' || !File.exist?(path)
 
       File.open(path) do |yaml|
         YAML.safe_load(yaml)
@@ -168,7 +166,8 @@ module GryphonNest
         created_files << dest_file
         next unless can_create_html_file?(template, dest_file, layout_file, context_file)
 
-        content = renderer.render(template, layout_file, context)
+        context['layout'] = layout_file
+        content = renderer.render_file(template, context)
         save_html_file(dest_file, content)
       end
 
