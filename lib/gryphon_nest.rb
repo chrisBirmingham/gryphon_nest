@@ -18,6 +18,7 @@ module GryphonNest
     LAYOUT_DIR = 'layouts'
     TEMPLATE_EXT = '.mustache'
 
+    # @raise [NotFoundError]
     def build_website
       raise NotFoundError, "Content directory doesn't exist" unless Dir.exist?(CONTENT_DIR)
 
@@ -110,6 +111,7 @@ module GryphonNest
     # @param name [String]
     # @param context [Hash]
     # @return [String]
+    # @raise [NotFoundError]
     def get_layout_file(name, context)
       path = Pathname.new(LAYOUT_DIR)
 

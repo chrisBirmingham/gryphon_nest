@@ -16,7 +16,7 @@ module GryphonNest
     # @param context [Hash]
     # @return [String]
     def render_file(template, context)
-      content = super(template, context)
+      content = super
 
       if context.key?('layout')
         context['yield'] = content
@@ -27,7 +27,7 @@ module GryphonNest
     end
 
     # @param name [String]
-    # return [String]
+    # @return [String]
     def partial(name)
       return @layouts[name] if @layouts.key?(name)
 
