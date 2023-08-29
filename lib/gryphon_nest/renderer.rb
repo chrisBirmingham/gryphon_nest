@@ -15,7 +15,7 @@ module GryphonNest
     # @param template [String]
     # @param context [Hash]
     # @return [String]
-    def render_file(template, context)
+    def render_file(template, context = {})
       content = super
 
       if context.key?('layout')

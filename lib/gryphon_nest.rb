@@ -46,7 +46,7 @@ module GryphonNest
     private
 
     # @param template_name [String]
-    # @return [String]
+    # @return [Pathname]
     def get_output_name(template_name)
       dir = File.dirname(template_name)
       basename = File.basename(template_name, TEMPLATE_EXT)
@@ -56,8 +56,7 @@ module GryphonNest
 
       path = path.join(basename) if basename != 'index'
 
-      path = path.join('index.html')
-      path.to_s
+      path.join('index.html')
     end
 
     # @params path [String]
@@ -82,27 +81,32 @@ module GryphonNest
       File.write(path, content)
     end
 
-    # @param src [String]
-    # @param dest [String]
-    # @param layout_file [String]
-    # @param context_file [String]
+    # @param src [Pathname, String]
+    # @param dest [Pathname, String]
     # @return [Boolean]
-    def can_create_html_file?(src, dest, layout_file, context_file)
+    def can_create_html_file?(src, dest)
       return true unless File.exist?(dest)
 
       src_mtime = File.mtime(src)
       dest_mtime = File.mtime(dest)
+      src_mtime > dest_mtime
+    end
 
-      return true if src_mtime > dest_mtime
+    # @param dest_file [Pathname, String]
+    # @param context_file [Pathname, String]
+    # @param context [Hash]
+    # @return [Boolean]
+    def context_updated?(dest_file, context_file, context)
+      return true unless File.exist?(dest_file)
 
-      if File.exist?(layout_file)
-        layout_mtime = File.mtime(layout_file)
+      dest_mtime = File.mtime(dest_file)
+      context_mtime = File.mtime(context_file)
+
+      return true if context_mtime > dest_mtime
+
+      if context.key?('layout')
+        layout_mtime = File.mtime(context['layout'])
         return true if layout_mtime > dest_mtime
-      end
-
-      if File.exist?(context_file)
-        context_mtime = File.mtime(context_file)
-        return true if context_mtime > dest_mtime
       end
 
       false
@@ -110,7 +114,7 @@ module GryphonNest
 
     # @param name [String]
     # @param context [Hash]
-    # @return [String]
+    # @return [Pathname, nil]
     # @raise [NotFoundError]
     def get_layout_file(name, context)
       path = Pathname.new(LAYOUT_DIR)
@@ -121,32 +125,32 @@ module GryphonNest
 
         raise NotFoundError, "#{name} requires layout file #{layout} but it doesn't exist or can't be read" unless File.exist?(path)
 
-        return path.to_s
+        return path
       end
 
-      path.join('main.mustache').to_s
+      path = path.join('main.mustache')
+      path if File.exist?(path)
     end
 
+    # @param name [String]
     # @param path [String]
     # @return [Hash]
-    def read_context_file(path)
-      return {} if path == '' || !File.exist?(path)
-
+    def read_context_file(name, path)
       File.open(path) do |yaml|
-        YAML.safe_load(yaml)
+        context = YAML.safe_load(yaml)
+        context['layout'] = get_layout_file(name, context)
+        context
       end
     end
 
     # @param name [String]
-    # @return [String]
+    # @return [String, nil]
     def get_context_file(name)
       basename = File.basename(name, TEMPLATE_EXT)
 
       Dir.glob("#{DATA_DIR}/#{basename}.{yaml,yml}") do |f|
         return f
       end
-
-      ''
     end
 
     # @return [Array]
@@ -156,19 +160,21 @@ module GryphonNest
 
       filter_glob("#{CONTENT_DIR}/**/*").each do |template|
         if File.extname(template) != TEMPLATE_EXT
-          puts "Skipping non template file #{template}"
+          warn "Skipping non template file #{template}"
           next
         end
 
+        context = {}
         dest_file = get_output_name(template)
+        created_files << dest_file.to_s
+        next unless can_create_html_file?(template, dest_file)
+
         context_file = get_context_file(template)
-        context = read_context_file(context_file)
-        layout_file = get_layout_file(template, context)
+        unless context_file.nil?
+          context = read_context_file(template, context_file)
+          next unless context_updated?(dest_file, context_file, context)
+        end
 
-        created_files << dest_file
-        next unless can_create_html_file?(template, dest_file, layout_file, context_file)
-
-        context['layout'] = layout_file
         content = renderer.render_file(template, context)
         save_html_file(dest_file, content)
       end
@@ -176,8 +182,8 @@ module GryphonNest
       created_files
     end
 
-    # @param src [String]
-    # @param dest [String]
+    # @param src [Pathname, String]
+    # @param dest [Pathname, String]
     # @return [Boolean]
     def can_copy_asset?(src, dest)
       return true unless File.exist?(dest)
