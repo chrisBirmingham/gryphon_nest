@@ -105,10 +105,7 @@ module GryphonNest
     # @return [Pathname, nil]
     def get_context_file(name)
       basename = name.basename(TEMPLATE_EXT)
-
-      Dir.glob("#{DATA_DIR}/#{basename}.{yaml,yml}") do |f|
-        return Pathname.new(f)
-      end
+      FileUtil.glob("#{DATA_DIR}/#{basename}.{yaml,yml}")[0]
     end
 
     # @param source_file [Pathname]
