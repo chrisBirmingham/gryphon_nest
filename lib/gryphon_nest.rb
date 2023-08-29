@@ -125,10 +125,25 @@ module GryphonNest
       end
     end
 
+    # @param source_file [Pathname]
+    # @param dest_file [Pathname]
+    def process_file(source_file, dest_file)
+      renderer = Renderer.new
+
+      context_file = get_context_file(source_file)
+      context = get_context(context_file)
+      layout_file = get_layout_file(source_file.basename, context)
+      context['layout'] = layout_file unless layout_file.nil?
+
+      return unless resources_updated?(source_file, dest_file, context_file, layout_file)
+
+      content = renderer.render_file(source_file, context)
+      save_html_file(dest_file, content)
+    end
+
     # @return [Array]
     def process_content
       created_files = []
-      renderer = Renderer.new
 
       Util.glob("#{CONTENT_DIR}/**/*").each do |source_file|
         if source_file.extname != TEMPLATE_EXT
@@ -138,15 +153,7 @@ module GryphonNest
 
         dest_file = get_output_name(source_file)
         created_files << dest_file
-        context_file = get_context_file(source_file)
-        context = get_context(context_file)
-        layout_file = get_layout_file(source_file.basename, context)
-        context['layout'] = layout_file unless layout_file.nil?
-
-        next unless resources_updated?(source_file, dest_file, context_file, layout_file)
-
-        content = renderer.render_file(source_file, context)
-        save_html_file(dest_file, content)
+        process_file(source_file, dest_file)
       end
 
       created_files
