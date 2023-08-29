@@ -8,7 +8,7 @@ require 'yaml'
 module GryphonNest
   autoload :NotFoundError, 'gryphon_nest/not_found_error'
   autoload :Renderer, 'gryphon_nest/renderer'
-  autoload :Util, 'gryphon_nest/util'
+  autoload :FileUtil, 'gryphon_nest/file_util'
   autoload :VERSION, 'gryphon_nest/version'
 
   class << self
@@ -26,14 +26,14 @@ module GryphonNest
 
       existing_files = []
       if Dir.exist?(BUILD_DIR)
-        existing_files = Util.glob("#{BUILD_DIR}/**/*")
+        existing_files = FileUtil.glob("#{BUILD_DIR}/**/*")
       else
         Dir.mkdir(BUILD_DIR)
       end
 
       existing_files = existing_files.difference(process_content)
       existing_files = existing_files.difference(copy_assets)
-      Util.cleanup(existing_files)
+      FileUtil.delete(existing_files)
     end
 
     # @param port [Integer]
@@ -59,31 +59,17 @@ module GryphonNest
       path.join('index.html')
     end
 
-    # @param path [Pathname]
-    # @param content [String]
-    def save_html_file(path, content)
-      dir = path.dirname
-
-      unless dir.exist?
-        puts "Creating #{dir}"
-        dir.mkdir
-      end
-
-      puts "Creating #{path}"
-      path.write(content)
-    end
-
     # @param source_file [Pathname]
     # @param dest_file [Pathname]
     # @param context_file [Pathname, nil]
     # @param layout_file [Pathname, nil]
     # @return [Boolean]
     def resources_updated?(source_file, dest_file, context_file, layout_file)
-      return true if Util.file_updated?(source_file, dest_file)
+      return true if FileUtil.file_newer?(source_file, dest_file)
 
-      return true if !context_file.nil? && Util.file_updated?(context_file, dest_file)
+      return true if !context_file.nil? && FileUtil.file_newer?(context_file, dest_file)
 
-      !layout_file.nil? && Util.file_updated?(layout_file, dest_file)
+      !layout_file.nil? && FileUtil.file_newer?(layout_file, dest_file)
     end
 
     # @param name [String]
@@ -127,6 +113,7 @@ module GryphonNest
 
     # @param source_file [Pathname]
     # @param dest_file [Pathname]
+    # @raise [NotFoundError]
     def process_file(source_file, dest_file)
       renderer = Renderer.new
 
@@ -138,14 +125,15 @@ module GryphonNest
       return unless resources_updated?(source_file, dest_file, context_file, layout_file)
 
       content = renderer.render_file(source_file, context)
-      save_html_file(dest_file, content)
+      FileUtil.write_file(dest_file, content)
     end
 
     # @return [Array]
+    # @raise [NotFoundError]
     def process_content
       created_files = []
 
-      Util.glob("#{CONTENT_DIR}/**/*").each do |source_file|
+      FileUtil.glob("#{CONTENT_DIR}/**/*").each do |source_file|
         if source_file.extname != TEMPLATE_EXT
           warn "Skipping non template file #{source_file}"
           next
@@ -164,11 +152,11 @@ module GryphonNest
       return [] unless Dir.exist?(ASSETS_DIR)
 
       copied_files = []
-      Util.glob("#{ASSETS_DIR}/**/*").each do |asset|
+      FileUtil.glob("#{ASSETS_DIR}/**/*").each do |asset|
         dest = asset.sub(ASSETS_DIR, BUILD_DIR)
         copied_files << dest
 
-        next unless Util.file_updated?(asset, dest)
+        next unless FileUtil.file_newer?(asset, dest)
 
         puts "Copying #{asset} to #{dest}"
         dest_dir = dest.dirname

@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
+require 'fileutils'
 require 'pathname'
 
 module GryphonNest
-  class Util
+  class FileUtil
     # @params path [String]
     # @return [Array]
     def self.glob(path)
@@ -17,7 +18,7 @@ module GryphonNest
     end
 
     # @param junk_files [Array]
-    def self.cleanup(junk_files)
+    def self.delete(junk_files)
       junk_files.each do |f|
         puts "Deleting #{f}"
         FileUtils.remove_file(f)
@@ -27,10 +28,24 @@ module GryphonNest
     # @param src [Pathname]
     # @param dest [Pathname]
     # @return [Boolean]
-    def self.file_updated?(src, dest)
+    def self.file_newer?(src, dest)
       return true unless dest.exist?
 
       src.mtime > dest.mtime
+    end
+
+    # @param path [Pathname]
+    # @param content [String]
+    def self.write_file(path, content)
+      dir = path.dirname
+
+      unless dir.exist?
+        puts "Creating #{dir}"
+        dir.mkdir
+      end
+
+      puts "Creating #{path}"
+      path.write(content)
     end
   end
 end
