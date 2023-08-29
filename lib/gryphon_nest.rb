@@ -26,7 +26,7 @@ module GryphonNest
 
       existing_files = []
       if Dir.exist?(BUILD_DIR)
-        existing_files = Util.glob("#{BUILD_DIR}/**/*", as_str: true)
+        existing_files = Util.glob("#{BUILD_DIR}/**/*")
       else
         Dir.mkdir(BUILD_DIR)
       end
@@ -76,16 +76,14 @@ module GryphonNest
     # @param source_file [Pathname]
     # @param dest_file [Pathname]
     # @param context_file [Pathname, nil]
-    # @param context [Hash]
+    # @param layout_file [Pathname, nil]
     # @return [Boolean]
-    def resources_updated?(source_file, dest_file, context_file, context)
+    def resources_updated?(source_file, dest_file, context_file, layout_file)
       return true if Util.file_updated?(source_file, dest_file)
 
       return true if !context_file.nil? && Util.file_updated?(context_file, dest_file)
 
-      return false unless context.key?('layout')
-
-      Util.file_updated?(context['layout'], dest_file)
+      !layout_file.nil? && Util.file_updated?(layout_file, dest_file)
     end
 
     # @param name [String]
@@ -134,17 +132,18 @@ module GryphonNest
 
       Util.glob("#{CONTENT_DIR}/**/*").each do |source_file|
         if source_file.extname != TEMPLATE_EXT
-          warn "Skipping non template file #{template}"
+          warn "Skipping non template file #{source_file}"
           next
         end
 
         dest_file = get_output_name(source_file)
-        created_files << dest_file.to_s
+        created_files << dest_file
         context_file = get_context_file(source_file)
         context = get_context(context_file)
-        context['layout'] = get_layout_file(source_file.basename, context)
+        layout_file = get_layout_file(source_file.basename, context)
+        context['layout'] = layout_file unless layout_file.nil?
 
-        next if resources_updated?(source_file, dest_file, context_file, context)
+        next unless resources_updated?(source_file, dest_file, context_file, layout_file)
 
         content = renderer.render_file(source_file, context)
         save_html_file(dest_file, content)
@@ -160,7 +159,7 @@ module GryphonNest
       copied_files = []
       Util.glob("#{ASSETS_DIR}/**/*").each do |asset|
         dest = asset.sub(ASSETS_DIR, BUILD_DIR)
-        copied_files << dest.to_s
+        copied_files << dest
 
         next unless Util.file_updated?(asset, dest)
 

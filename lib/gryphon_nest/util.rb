@@ -5,14 +5,11 @@ require 'pathname'
 module GryphonNest
   class Util
     # @params path [String]
-    # @param as_str [Boolean]
     # @return [Array]
-    def self.glob(path, as_str: false)
+    def self.glob(path)
       files = Dir.glob(path).reject do |p|
         File.directory?(p)
       end
-
-      return files if as_str
 
       files.map do |f|
         Pathname.new(f)
