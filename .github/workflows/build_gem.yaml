@@ -2,10 +2,11 @@ name: Build and Publish Gem
 
 on:
   push:
-    branches: ['*']
+    branches:
+      - '*'
 
 jobs:
-  build_and_publish:
+  build_gem:
     runs-on: ubuntu-latest
 
     steps:
