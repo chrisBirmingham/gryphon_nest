@@ -1,4 +1,4 @@
-name: Build and Publish Gem
+name: Build Gem
 
 on:
   push:
