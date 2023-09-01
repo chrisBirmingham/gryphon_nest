@@ -8,6 +8,7 @@ require 'yaml'
 module GryphonNest
   autoload :NotFoundError, 'gryphon_nest/not_found_error'
   autoload :Renderer, 'gryphon_nest/renderer'
+  autoload :FileUtil, 'gryphon_nest/file_util'
   autoload :VERSION, 'gryphon_nest/version'
 
   class << self
@@ -17,20 +18,22 @@ module GryphonNest
     ASSETS_DIR = 'assets'
     LAYOUT_DIR = 'layouts'
     TEMPLATE_EXT = '.mustache'
+    DEFAULT_LAYOUT = Pathname.new("#{LAYOUT_DIR}/main.mustache")
 
+    # @raise [NotFoundError]
     def build_website
       raise NotFoundError, "Content directory doesn't exist" unless Dir.exist?(CONTENT_DIR)
 
       existing_files = []
       if Dir.exist?(BUILD_DIR)
-        existing_files = filter_glob("#{BUILD_DIR}/**/*")
+        existing_files = FileUtil.glob("#{BUILD_DIR}/**/*")
       else
         Dir.mkdir(BUILD_DIR)
       end
 
       existing_files = existing_files.difference(process_content)
       existing_files = existing_files.difference(copy_assets)
-      cleanup(existing_files)
+      FileUtil.delete(existing_files)
     end
 
     # @param port [Integer]
@@ -44,72 +47,35 @@ module GryphonNest
 
     private
 
-    # @param template_name [String]
-    # @return [String]
-    def get_output_name(template_name)
-      dir = File.dirname(template_name)
-      basename = File.basename(template_name, TEMPLATE_EXT)
+    # @param source_file [Pathname]
+    # @return [Pathname]
+    def get_output_name(source_file)
+      dir = source_file.dirname
+      basename = source_file.basename(TEMPLATE_EXT)
+      path = dir.sub(CONTENT_DIR, BUILD_DIR)
 
-      path = Pathname.new(dir)
-      path = path.sub(CONTENT_DIR, BUILD_DIR)
+      path = path.join(basename) if basename.to_s != 'index'
 
-      path = path.join(basename) if basename != 'index'
-
-      path = path.join('index.html')
-      path.to_s
+      path.join('index.html')
     end
 
-    # @params path [String]
-    # @return [Array]
-    def filter_glob(path)
-      Dir.glob(path).reject do |p|
-        File.directory?(p)
-      end
-    end
-
-    # @param path [String]
-    # @param content [String]
-    def save_html_file(path, content)
-      dir = File.dirname(path)
-
-      unless Dir.exist?(dir)
-        puts "Creating #{dir}"
-        Dir.mkdir(dir)
-      end
-
-      puts "Creating #{path}"
-      File.write(path, content)
-    end
-
-    # @param src [String]
-    # @param dest [String]
-    # @param layout_file [String]
-    # @param context_file [String]
+    # @param source_file [Pathname]
+    # @param dest_file [Pathname]
+    # @param context_file [Pathname, nil]
+    # @param layout_file [Pathname, nil]
     # @return [Boolean]
-    def can_create_html_file?(src, dest, layout_file, context_file)
-      return true unless File.exist?(dest)
+    def resources_updated?(source_file, dest_file, context_file, layout_file)
+      return true if FileUtil.file_newer?(source_file, dest_file)
 
-      src_mtime = File.mtime(src)
-      dest_mtime = File.mtime(dest)
+      return true if !context_file.nil? && FileUtil.file_newer?(context_file, dest_file)
 
-      return true if src_mtime > dest_mtime
-
-      if File.exist?(layout_file)
-        layout_mtime = File.mtime(layout_file)
-        return true if layout_mtime > dest_mtime
-      end
-
-      if File.exist?(context_file)
-        context_mtime = File.mtime(context_file)
-        return true if context_mtime > dest_mtime
-      end
-
-      false
+      !layout_file.nil? && FileUtil.file_newer?(layout_file, dest_file)
     end
 
     # @param name [String]
     # @param context [Hash]
-    # @return [String]
+    # @return [Pathname, nil]
+    # @raise [NotFoundError]
     def get_layout_file(name, context)
       path = Pathname.new(LAYOUT_DIR)
 
@@ -117,71 +83,65 @@ module GryphonNest
         layout = context['layout']
         path = path.join(layout)
 
-        raise NotFoundError, "#{name} requires layout file #{layout} but it doesn't exist or can't be read" unless File.exist?(path)
+        raise NotFoundError, "#{name} requires layout file #{layout} but it doesn't exist or can't be read" unless path.exist?
 
-        return path.to_s
+        return path
       end
 
-      path.join('main.mustache').to_s
+      DEFAULT_LAYOUT if DEFAULT_LAYOUT.exist?
     end
 
-    # @param path [String]
+    # @param path [Pathname, nil]
     # @return [Hash]
-    def read_context_file(path)
-      return {} if path == ''
-
-      return {} unless File.exist?(path)
+    def get_context(path)
+      return {} if path.nil?
 
       File.open(path) do |yaml|
         YAML.safe_load(yaml)
       end
     end
 
-    # @param name [String]
-    # @return [String]
+    # @param name [Pathname]
+    # @return [Pathname, nil]
     def get_context_file(name)
-      basename = File.basename(name, TEMPLATE_EXT)
+      basename = name.basename(TEMPLATE_EXT)
+      FileUtil.glob("#{DATA_DIR}/#{basename}.{yaml,yml}")[0]
+    end
 
-      Dir.glob("#{DATA_DIR}/#{basename}.{yaml,yml}") do |f|
-        return f
-      end
+    # @param renderer [Renderer]
+    # @param source_file [Pathname]
+    # @param dest_file [Pathname]
+    # @raise [NotFoundError]
+    def process_file(renderer, source_file, dest_file)
+      context_file = get_context_file(source_file)
+      context = get_context(context_file)
+      layout_file = get_layout_file(source_file.basename, context)
+      context['layout'] = layout_file unless layout_file.nil?
 
-      ''
+      return unless resources_updated?(source_file, dest_file, context_file, layout_file)
+
+      content = renderer.render_file(source_file, context)
+      FileUtil.write_file(dest_file, content)
     end
 
     # @return [Array]
+    # @raise [NotFoundError]
     def process_content
       created_files = []
-      renderer = Renderer.new
 
-      filter_glob("#{CONTENT_DIR}/**/*").each do |template|
-        if File.extname(template) != TEMPLATE_EXT
-          puts "Skipping non template file #{template}"
+      renderer = Renderer.new
+      FileUtil.glob("#{CONTENT_DIR}/**/*").each do |source_file|
+        if source_file.extname != TEMPLATE_EXT
+          warn "Skipping non template file #{source_file}"
           next
         end
 
-        dest_file = get_output_name(template)
-        context_file = get_context_file(template)
-        context = read_context_file(context_file)
-        layout_file = get_layout_file(template, context)
-
+        dest_file = get_output_name(source_file)
         created_files << dest_file
-        next unless can_create_html_file?(template, dest_file, layout_file, context_file)
-
-        content = renderer.render(template, layout_file, context)
-        save_html_file(dest_file, content)
+        process_file(renderer, source_file, dest_file)
       end
 
       created_files
-    end
-
-    # @param src [String]
-    # @param dest [String]
-    # @return [Boolean]
-    def can_copy_asset?(src, dest)
-      return true unless File.exist?(dest)
-
-      File.mtime(src) > File.mtime(dest)
     end
 
     # @return [Array]
@@ -189,28 +149,19 @@ module GryphonNest
       return [] unless Dir.exist?(ASSETS_DIR)
 
       copied_files = []
-      filter_glob("#{ASSETS_DIR}/**/*").each do |asset|
-        dest = Pathname.new(asset)
-        dest = dest.sub(ASSETS_DIR, BUILD_DIR)
-        copied_files << dest.to_s
+      FileUtil.glob("#{ASSETS_DIR}/**/*").each do |asset|
+        dest = asset.sub(ASSETS_DIR, BUILD_DIR)
+        copied_files << dest
 
-        next unless can_copy_asset?(asset, dest)
+        next unless FileUtil.file_newer?(asset, dest)
 
         puts "Copying #{asset} to #{dest}"
-        dest_dir = File.dirname(dest)
+        dest_dir = dest.dirname
         FileUtils.makedirs(dest_dir)
         FileUtils.copy_file(asset, dest)
       end
 
       copied_files
-    end
-
-    # @param junk_files [Array]
-    def cleanup(junk_files)
-      junk_files.each do |f|
-        puts "Deleting #{f}"
-        FileUtils.remove_file(f)
-      end
     end
   end
 end
