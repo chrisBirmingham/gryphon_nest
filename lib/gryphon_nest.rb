@@ -108,12 +108,11 @@ module GryphonNest
       FileUtil.glob("#{DATA_DIR}/#{basename}.{yaml,yml}")[0]
     end
 
+    # @param renderer [Renderer]
     # @param source_file [Pathname]
     # @param dest_file [Pathname]
     # @raise [NotFoundError]
-    def process_file(source_file, dest_file)
-      renderer = Renderer.new
-
+    def process_file(renderer, source_file, dest_file)
       context_file = get_context_file(source_file)
       context = get_context(context_file)
       layout_file = get_layout_file(source_file.basename, context)
@@ -130,6 +129,7 @@ module GryphonNest
     def process_content
       created_files = []
 
+      renderer = Renderer.new
       FileUtil.glob("#{CONTENT_DIR}/**/*").each do |source_file|
         if source_file.extname != TEMPLATE_EXT
           warn "Skipping non template file #{source_file}"
@@ -138,7 +138,7 @@ module GryphonNest
 
         dest_file = get_output_name(source_file)
         created_files << dest_file
-        process_file(source_file, dest_file)
+        process_file(renderer, source_file, dest_file)
       end
 
       created_files
