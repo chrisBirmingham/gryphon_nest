@@ -4,19 +4,17 @@ require 'fileutils'
 
 module GryphonNest
   class AssetProcessor
-    # @param dest_folder [String]
-    def initialize(dest_folder)
-      @dest_folder = dest_folder
-    end
-
     # @param file [Pathname]
+    # @return [Pathname]
     def process(file)
       dest = dest_name(file)
 
-      return unless file_modified?(file, dest)
+      return dest unless file_modified?(file, dest)
 
+      puts "Copying #{file} to #{dest}"
       FileUtils.makedirs(dest.dirname)
       FileUtils.copy_file(file, dest)
+      dest
     end
 
     private
@@ -24,9 +22,7 @@ module GryphonNest
     # @param src [Pathname]
     # @return [Pathname]
     def dest_name(src)
-      parts = src.to_s.split('/')
-      parts[0] = @dest_folder
-      Pathname.new(parts.join('/'))
+      src.sub(CONTENT_DIR, BUILD_DIR)
     end
 
     # @param src [Pathname]

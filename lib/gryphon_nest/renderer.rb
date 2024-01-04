@@ -6,12 +6,6 @@ require 'mustache'
 module GryphonNest
   # Renders mustache templates to html
   class Renderer < Mustache
-    # @param options [Hash]
-    def initialize(options = {})
-      @layouts = {}
-      super
-    end
-
     # @param template [String]
     # @param context [Hash]
     # @return [String]
@@ -29,11 +23,7 @@ module GryphonNest
     # @param name [String]
     # @return [String]
     def partial(name)
-      return @layouts[name] if @layouts.key?(name)
-
-      content = File.read(name)
-      @layouts[name] = content
-      content
+      File.read(name)
     end
   end
 end

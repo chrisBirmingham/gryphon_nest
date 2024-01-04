@@ -1,21 +1,22 @@
 # frozen_string_literal: true
 
+require 'yaml'
+
 module GryphonNest
   class MustacheProcessor
     # @param renderer [Renderer]
-    # @param dest_folder [String]
-    # @param context_folder [String]
-    def initialize(renderer, dest_folder, context_folder)
+    def initialize(renderer)
       @renderer = renderer
-      @dest_folder = dest_folder
-      @context_folder = context_folder
     end
 
     # @param file [Pathname]
+    # @return [Pathname]
     def process(file)
       dest = dest_name(file)
-      content = @renderer.render_file(file)
+      context = read_context(file) 
+      content = @renderer.render_file(file, context)
       write_file(dest, content)
+      dest
     end
 
     private
@@ -23,14 +24,26 @@ module GryphonNest
     # @param src [Pathname]
     # @return [Pathname]
     def dest_name(src)
-      parts = src.to_s.split('/')
-      parts[0] = @dest_folder
-      path = Pathname.new(parts.join('/'))
-      basename = src.basename('.mustache')
+      dir = src.dirname
+      path = dir.sub(CONTENT_DIR, BUILD_DIR)
+      basename = src.basename(TEMPLATE_EXT)
 
       path = path.join(basename) if basename.to_s != 'index'
 
       path.join('index.html')
+    end
+
+    # @param src [Pathname]
+    # @return [Hash]
+    def read_context(src)
+      basename = src.basename(TEMPLATE_EXT)
+      path = Pathname.new("#{DATA_DIR}/#{basename}.yaml")
+
+      return {} unless path.exist?
+
+      File.open(path) do |yaml|
+        YAML.safe_load(yaml)
+      end
     end
 
     # @param path [Pathname]
