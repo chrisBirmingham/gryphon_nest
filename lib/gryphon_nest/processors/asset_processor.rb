@@ -11,7 +11,7 @@ module GryphonNest
 
       if file_modified?(file, dest)
         puts "Copying #{file} to #{dest}"
-        FileUtils.makedirs(dest.dirname)
+        dest.dirname.mkpath
         FileUtils.copy_file(file, dest)
       end
 

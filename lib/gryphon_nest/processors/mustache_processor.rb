@@ -4,7 +4,7 @@ require 'yaml'
 
 module GryphonNest
   class MustacheProcessor
-    # @param renderer [Renderer]
+    # @param renderer [MustacheRenderer]
     def initialize(renderer)
       @renderer = renderer
     end
@@ -37,25 +37,20 @@ module GryphonNest
     # @return [Hash]
     def read_context(src)
       basename = src.basename(TEMPLATE_EXT)
-      path = Pathname.new("#{DATA_DIR}/#{basename}.yaml")
-
-      return {} unless path.exist?
+      path = "#{DATA_DIR}/#{basename}.yaml"
 
       File.open(path) do |yaml|
         YAML.safe_load(yaml)
       end
+    rescue IOError
+      {}
     end
 
     # @param path [Pathname]
     # @param content [String]
     def write_file(path, content)
       dir = path.dirname
-
-      unless dir.exist?
-        puts "Creating #{dir}"
-        dir.mkdir
-      end
-
+      dir.mkpath
       puts "Creating #{path}"
       path.write(content)
     end

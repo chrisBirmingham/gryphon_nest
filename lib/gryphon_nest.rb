@@ -1,12 +1,11 @@
 # frozen_string_literal: true
 
-require 'fileutils'
 require 'pathname'
 require 'webrick'
 
 module GryphonNest
   autoload :NotFoundError, 'gryphon_nest/not_found_error'
-  autoload :Renderer, 'gryphon_nest/renderer'
+  autoload :MustacheRenderer, 'gryphon_nest/renderers/mustache_renderer'
   autoload :VERSION, 'gryphon_nest/version'
   autoload :AssetProcessor, 'gryphon_nest/processors/asset_processor'
   autoload :MustacheProcessor, 'gryphon_nest/processors/mustache_processor'
@@ -47,15 +46,15 @@ module GryphonNest
     # @return [Array]
     def process_content
       processed_files = []
-      renderer = Renderer.new({'layout_file' => LAYOUT_FILE})
+      renderer = MustacheRenderer.new({'layout_file' => LAYOUT_FILE})
+      asset_processor = AssetProcessor.new
 
       processors = {
         TEMPLATE_EXT => MustacheProcessor.new(renderer)
       }
-      processors.default = AssetProcessor.new
 
       glob("#{CONTENT_DIR}/**/*").each do |source_file|
-        processor = processors[source_file.extname]
+        processor = processors.fetch(source_file.extname, asset_processor)
         processed_files << processor.process(source_file)
       end
 
@@ -72,7 +71,7 @@ module GryphonNest
     def delete_files(junk_files)
       junk_files.each do |f|
         puts "Deleting #{f}"
-        FileUtils.remove_file(f)
+        f.delete
       end
     end
   end

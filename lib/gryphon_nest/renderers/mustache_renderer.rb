@@ -5,7 +5,7 @@ require 'mustache'
 
 module GryphonNest
   # Renders mustache templates to html
-  class Renderer < Mustache
+  class MustacheRenderer < Mustache
     # @param template [String]
     # @param context [Hash]
     # @return [String]
@@ -32,10 +32,9 @@ module GryphonNest
     # @return [String]
     def read_layout_file
       layout_file = @options['layout_file']
-
-      return '' unless File.exist?(layout_file)
-
       File.read(layout_file)
+    rescue IOError
+      ''
     end
   end
 end
