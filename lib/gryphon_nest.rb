@@ -15,7 +15,7 @@ module GryphonNest
   CONTENT_DIR = 'content'
   DATA_DIR = 'data'
   TEMPLATE_EXT = '.mustache'
-  TEMPLATE_FILE = 'layouts/main.mustache'
+  LAYOUT_FILE = 'layouts/main.mustache'
 
   class << self
     # @raise [NotFoundError]
@@ -47,7 +47,7 @@ module GryphonNest
     # @return [Array]
     def process_content
       processed_files = []
-      renderer = Renderer.new
+      renderer = Renderer.new({'layout_file' => LAYOUT_FILE})
 
       processors = {
         TEMPLATE_EXT => MustacheProcessor.new(renderer)
@@ -65,9 +65,7 @@ module GryphonNest
     # @params path [String]
     # @return [Array]
     def glob(path)
-      Pathname.glob(path).reject do |p|
-        p.directory?
-      end
+      Pathname.glob(path).reject(&:directory?)
     end
 
     # @param junk_files [Array]

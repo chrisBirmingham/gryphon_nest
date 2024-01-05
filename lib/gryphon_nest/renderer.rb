@@ -12,9 +12,10 @@ module GryphonNest
     def render_file(template, context = {})
       content = super
 
-      if context.key?('layout')
+      layout ||= read_layout_file
+      unless layout.empty?
         context['yield'] = content
-        content = super(context['layout'], context)
+        content = render(layout, context)
       end
 
       HtmlBeautifier.beautify(content)
@@ -24,6 +25,17 @@ module GryphonNest
     # @return [String]
     def partial(name)
       File.read(name)
+    end
+
+    private
+
+    # @return [String]
+    def read_layout_file
+      layout_file = @options['layout_file']
+
+      return '' unless File.exist?(layout_file)
+
+      File.read(layout_file)
     end
   end
 end

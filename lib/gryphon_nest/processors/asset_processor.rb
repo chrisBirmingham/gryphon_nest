@@ -9,11 +9,12 @@ module GryphonNest
     def process(file)
       dest = dest_name(file)
 
-      return dest unless file_modified?(file, dest)
+      if file_modified?(file, dest)
+        puts "Copying #{file} to #{dest}"
+        FileUtils.makedirs(dest.dirname)
+        FileUtils.copy_file(file, dest)
+      end
 
-      puts "Copying #{file} to #{dest}"
-      FileUtils.makedirs(dest.dirname)
-      FileUtils.copy_file(file, dest)
       dest
     end
 
