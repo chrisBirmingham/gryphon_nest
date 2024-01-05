@@ -13,7 +13,7 @@ module GryphonNest
     # @return [Pathname]
     def process(file)
       dest = dest_name(file)
-      context = read_context(file) 
+      context = read_context(file)
       content = @renderer.render_file(file, context)
       write_file(dest, content)
       dest
