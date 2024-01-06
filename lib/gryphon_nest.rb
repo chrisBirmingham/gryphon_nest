@@ -5,10 +5,9 @@ require 'webrick'
 
 module GryphonNest
   autoload :NotFoundError, 'gryphon_nest/not_found_error'
-  autoload :MustacheRenderer, 'gryphon_nest/renderers/mustache_renderer'
+  autoload :Processors, 'gryphon_nest/processors'
+  autoload :Renderers, 'gryphon_nest/renderers'
   autoload :VERSION, 'gryphon_nest/version'
-  autoload :AssetProcessor, 'gryphon_nest/processors/asset_processor'
-  autoload :MustacheProcessor, 'gryphon_nest/processors/mustache_processor'
 
   BUILD_DIR = '_site'
   CONTENT_DIR = 'content'
@@ -46,11 +45,11 @@ module GryphonNest
     # @return [Array<Pathname>]
     def process_content
       processed_files = []
-      renderer = MustacheRenderer.new({ 'layout_file' => LAYOUT_FILE })
-      asset_processor = AssetProcessor.new
+      renderer = Renderers::MustacheRenderer.new({ 'layout_file' => LAYOUT_FILE })
+      asset_processor = Processors::AssetProcessor.new
 
       processors = {
-        TEMPLATE_EXT => MustacheProcessor.new(renderer)
+        TEMPLATE_EXT => Processors::MustacheProcessor.new(renderer)
       }
 
       glob("#{CONTENT_DIR}/**/*").each do |source_file|
