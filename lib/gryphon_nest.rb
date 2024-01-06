@@ -43,10 +43,10 @@ module GryphonNest
 
     private
 
-    # @return [Array]
+    # @return [Array<Pathname>]
     def process_content
       processed_files = []
-      renderer = MustacheRenderer.new({'layout_file' => LAYOUT_FILE})
+      renderer = MustacheRenderer.new({ 'layout_file' => LAYOUT_FILE })
       asset_processor = AssetProcessor.new
 
       processors = {
@@ -62,17 +62,18 @@ module GryphonNest
     end
 
     # @params path [String]
-    # @return [Array]
+    # @return [Array<Pathname>]
     def glob(path)
       Pathname.glob(path).reject(&:directory?)
     end
 
-    # @param junk_files [Array]
+    # @param junk_files [Array<Pathname>]
     def delete_files(junk_files)
       junk_files.each do |f|
         puts "Deleting #{f}"
         f.delete
       end
+      nil
     end
   end
 end
