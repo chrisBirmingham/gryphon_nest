@@ -34,9 +34,7 @@ module GryphonNest
       def read_layout_file
         layout_file = @options['layout_file']
         File.read(layout_file)
-      rescue IOError
-        ''
-      rescue Errno::ENOENT
+      rescue IOError, Errno::ENOENT
         ''
       end
     end

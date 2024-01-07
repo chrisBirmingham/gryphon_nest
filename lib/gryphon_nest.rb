@@ -18,7 +18,7 @@ module GryphonNest
   class << self
     # @raise [Errors::NotFoundError]
     def build_website
-      raise Errors::NotFoundError, "Content directory doesn't exist in current directory" unless Dir.exist?(CONTENT_DIR)
+      raise Errors::NotFoundError, "Content directory doesn't exist in the current directory" unless Dir.exist?(CONTENT_DIR)
 
       existing_files = []
       if Dir.exist?(BUILD_DIR)

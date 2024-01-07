@@ -42,9 +42,7 @@ module GryphonNest
         basename = src.basename(TEMPLATE_EXT)
         path = "#{DATA_DIR}/#{basename}.yaml"
         YAML.safe_load_file(path)
-      rescue IOError
-        {}
-      rescue Errno::ENOENT
+      rescue IOError, Errno::ENOENT
         {}
       rescue Psych::SyntaxError => e
         raise Errors::YamlError, "Encountered error while reading context file. #{e.message}"
