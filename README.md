@@ -1,20 +1,30 @@
 # Gryphon Nest
 
-Yet another static website builder based on the script originally used to build my own website. Built for those who like to work with HTML and [Mustache](https://mustache.github.io/), most likely just me.
+Yet another static website builder. Starting as a simple ruby script to build my own website it's now been converted into a gem for others to use. The main audience of this gem is those who like to work with HTML and [Mustache](https://mustache.github.io/), so probably just me :)
 
 ## Installation
 
 To install run:
 
-```sh
+```commandline
 [sudo] gem install gryphon_nest
+```
+
+Or include in your websites `Gemfile`
+
+```ruby
+gem 'gryphon_nest', '~> 2.0'
+```
+
+And run
+
+```commandline
+bundle install
 ```
 
 ## Usage
 
-### Commands
-
-Gryphon provides the executable `nest` which supports two commands:
+Gryphon provides the executable `nest` which currently supports two commands:
 
 * build: Generates your website and stores it in the `_site` folder.
 
@@ -22,7 +32,7 @@ Gryphon provides the executable `nest` which supports two commands:
 
 ## Project Strucutre
 
-Gryphon Nest requires this folder structure:
+Gryphon requires this folder structure:
 
 ```txt
 project_directory/
@@ -38,13 +48,15 @@ project_directory/
 
 ### Content
 
-Folder for the content of your website. Mustache template files are expanded to `_site/fileName/index.html` e.g. contact.mustache -> `_site/contact/index.html`, except for the `index.mustache` file which is saved as `index.html`. Other files are copied as is into the `_site` folder in the same folder structure they're in the content folder.
+Where you put all the content for your website. Mustache template files are expanded to `_site/basename/index.html` for clean URLs e.g. contact.mustache -> `_site/contact/index.html`, except for the `index.mustache` file which is saved as `index.html`. Other files are copied as is and in the same folder structure to the output folder.
+
+Gryphon will always rebuild template files but will only move asset files if they have been modified. If a file exists in the output folder that doesn't exist in the content folder. It will be deleted.
 
 ### Layouts
 
 If a `main.mustache` file exists in this folder, it will be used as the wrapper around all mustache files inside your content folder.
 
-An example of this file follows: 
+An example of this file is: 
 
 ```mustache
 <!DOCTYPE html>
@@ -65,7 +77,7 @@ The `{{{yield}}}` block is required and will be replaced with the content of the
 
 ### Data
 
-An optional folder containing yaml files providing context for mustache when it renders the template files in the content folder. Gryphon will use the data file with the same basename as the content file it's currently processing eg `contact.mustache -> contact.yaml`. The provided context will also be available in the layout file if provided.
+An optional folder containing yaml files providing context for mustache when it renders a template file. Gryphon will use the data file with the same basename as the context file it's currently processing eg `contact.mustache -> contact.yaml`. The provided context will also be available in the layout file if provided.
 
 ## Migrating from Version 1
 
