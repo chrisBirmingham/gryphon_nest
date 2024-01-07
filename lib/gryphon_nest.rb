@@ -4,7 +4,7 @@ require 'pathname'
 require 'webrick'
 
 module GryphonNest
-  autoload :NotFoundError, 'gryphon_nest/not_found_error'
+  autoload :Errors, 'gryphon_nest/errors'
   autoload :Processors, 'gryphon_nest/processors'
   autoload :Renderers, 'gryphon_nest/renderers'
   autoload :VERSION, 'gryphon_nest/version'
@@ -16,9 +16,9 @@ module GryphonNest
   LAYOUT_FILE = 'layouts/main.mustache'
 
   class << self
-    # @raise [NotFoundError]
+    # @raise [Errors::NotFoundError]
     def build_website
-      raise NotFoundError, "Content directory doesn't exist" unless Dir.exist?(CONTENT_DIR)
+      raise Errors::NotFoundError, "Content directory doesn't exist in current directory" unless Dir.exist?(CONTENT_DIR)
 
       existing_files = []
       if Dir.exist?(BUILD_DIR)

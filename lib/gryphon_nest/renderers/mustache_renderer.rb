@@ -36,6 +36,8 @@ module GryphonNest
         File.read(layout_file)
       rescue IOError
         ''
+      rescue Errno::ENOENT
+        ''
       end
     end
   end

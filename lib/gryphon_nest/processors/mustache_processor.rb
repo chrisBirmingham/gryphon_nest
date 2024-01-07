@@ -5,13 +5,14 @@ require 'yaml'
 module GryphonNest
   module Processors
     class MustacheProcessor
-      # @param renderer [MustacheRenderer]
+      # @param renderer [Renderers::MustacheRenderer]
       def initialize(renderer)
         @renderer = renderer
       end
 
       # @param file [Pathname]
       # @return [Pathname]
+      # @raise [Errors::YamlError]
       def process(file)
         dest = dest_name(file)
         context = read_context(file)
@@ -36,15 +37,17 @@ module GryphonNest
 
       # @param src [Pathname]
       # @return [Hash]
+      # @raise [Errors::YamlError]
       def read_context(src)
         basename = src.basename(TEMPLATE_EXT)
         path = "#{DATA_DIR}/#{basename}.yaml"
-
-        File.open(path) do |yaml|
-          YAML.safe_load(yaml)
-        end
+        YAML.safe_load_file(path)
       rescue IOError
         {}
+      rescue Errno::ENOENT
+        {}
+      rescue Psych::SyntaxError => e
+        raise Errors::YamlError, "Encountered error while reading context file. #{e.message}"
       end
 
       # @param path [Pathname]

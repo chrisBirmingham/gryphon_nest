@@ -4,7 +4,7 @@ PATH
     gryphon_nest (2.0.0)
       htmlbeautifier (~> 1.0)
       mustache (~> 1.0)
-      sysexits (~> 1.2)
+      psych (~> 3.3)
       webrick (~> 1.0)
 
 GEM
@@ -12,8 +12,8 @@ GEM
   specs:
     htmlbeautifier (1.4.2)
     mustache (1.1.1)
-    rake (13.0.6)
-    sysexits (1.2.0)
+    psych (3.3.4)
+    rake (13.1.0)
     webrick (1.8.1)
 
 PLATFORMS

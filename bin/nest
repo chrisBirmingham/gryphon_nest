@@ -3,9 +3,9 @@
 
 require 'gryphon_nest'
 require 'optparse'
-require 'sysexits'
 
 DEFAULT_PORT = 8000
+EXIT_FAILURE = 1
 
 options = {
   port: DEFAULT_PORT
@@ -15,11 +15,9 @@ options = {
 # @param parser [OptionParser]
 def usage_error(msg, parser)
   warn(msg, parser)
-  Sysexits.exit(:usage)
+  exit(EXIT_FAILURE)
 end
 
-# @param options [Hash]
-# @return [Array]
 begin
   parser = OptionParser.new do |opts|
     opts.banner = 'Usage: nest [build|serve] [options]'
@@ -47,7 +45,7 @@ begin
   GryphonNest.serve_website(options[:port]) if command == 'serve'
 rescue OptionParser::ParseError => e
   usage_error(e.message, parser)
-rescue GryphonNest::NotFoundError => e
+rescue StandardError => e
   warn e.message
-  Sysexits.exit(:input_missing)
+  exit(EXIT_FAILURE)
 end
