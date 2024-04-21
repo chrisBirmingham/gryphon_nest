@@ -15,6 +15,8 @@ module GryphonNest
       # @raise [Errors::YamlError]
       def process(file)
         dest = dest_name(file)
+        msg = File.exist?(dest) ? 'Recreating' : 'Creating'
+        puts "#{msg} #{dest}"
         context = read_context(file)
         content = @renderer.render_file(file, context)
         write_file(dest, content)
@@ -53,7 +55,6 @@ module GryphonNest
       def write_file(path, content)
         dir = path.dirname
         dir.mkpath
-        puts "Creating #{path}"
         path.write(content)
       end
     end

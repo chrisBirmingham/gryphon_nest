@@ -45,7 +45,7 @@ module GryphonNest
     # @return [Array<Pathname>]
     def process_content
       processed_files = []
-      renderer = Renderers::MustacheRenderer.new({ 'layout_file' => LAYOUT_FILE })
+      renderer = Renderers::MustacheRenderer.new
       asset_processor = Processors::AssetProcessor.new
 
       processors = {

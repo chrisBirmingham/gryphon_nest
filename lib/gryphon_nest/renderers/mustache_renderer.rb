@@ -12,28 +12,22 @@ module GryphonNest
       # @return [String]
       def render_file(template, context = {})
         content = super
-
-        layout ||= read_layout_file
-        unless layout.empty?
-          context['yield'] = content
-          content = render(layout, context)
-        end
-
         HtmlBeautifier.beautify(content)
       end
 
       # @param name [String]
       # @return [String]
       def partial(name)
-        File.read(name)
+        content = File.read(name)
+        layout ||= read_layout_file
+        layout.empty? ? content : layout.sub(/{{{\s*yield\s*}}}/, content) 
       end
 
       private
 
       # @return [String]
       def read_layout_file
-        layout_file = @options['layout_file']
-        File.read(layout_file)
+        File.read(LAYOUT_FILE)
       rescue IOError, Errno::ENOENT
         ''
       end
