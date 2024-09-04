@@ -5,3 +5,4 @@ module GryphonNest
     autoload :MustacheRenderer, 'gryphon_nest/renderers/mustache_renderer'
   end
 end
+

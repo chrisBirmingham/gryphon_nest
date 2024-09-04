@@ -6,3 +6,4 @@ module GryphonNest
     autoload :MustacheProcessor, 'gryphon_nest/processors/mustache_processor'
   end
 end
+
