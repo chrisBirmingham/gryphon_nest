@@ -46,6 +46,7 @@ module GryphonNest
     def process_content
       processed_files = []
       renderer = Renderers::MustacheRenderer.new
+      renderer.template_path = CONTENT_DIR
       asset_processor = Processors::AssetProcessor.new
 
       processors = {

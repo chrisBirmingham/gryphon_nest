@@ -13,7 +13,7 @@ To install run:
 Or include in your websites `Gemfile`
 
 ```ruby
-gem 'gryphon_nest', '~> 2.0'
+gem 'gryphon_nest', '~> 2.1'
 ```
 
 And run
@@ -68,16 +68,20 @@ An example of this file is:
     <link rel="stylesheet" href="styles/main.css">
   </head>
   <body>
-    {{{yield}}}
+    {{> yield }}
   </body>
 </html>
 ```
 
-The `{{{yield}}}` block is required and will be replaced with the content of the transformed content file.
+The `{{> yield }}` block is required and will be replaced with the content of the transformed content file.
 
 ### Data
 
 An optional folder containing yaml files providing context for mustache when it renders a template file. Gryphon will use the data file with the same basename as the context file it's currently processing eg `contact.mustache -> contact.yaml`. The provided context will also be available in the layout file if provided.
+
+## Migrating from 2.0
+
+* The `{{{ yield }}}` element in the layout file became the `{{> yield }}` tag
 
 ## Migrating from Version 1
 

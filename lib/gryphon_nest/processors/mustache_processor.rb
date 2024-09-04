@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'htmlbeautifier'
 require 'yaml'
 
 module GryphonNest
@@ -17,8 +18,19 @@ module GryphonNest
         dest = dest_name(file)
         msg = File.exist?(dest) ? 'Recreating' : 'Creating'
         puts "#{msg} #{dest}"
+        
+        @layout ||= read_layout_file
+
         context = read_context(file)
-        content = @renderer.render_file(file, context)
+
+        if @layout.empty?
+          content = @renderer.render_file(file, context)
+        else
+          context[:yield] = file.basename(TEMPLATE_EXT)
+          content = @renderer.render(@layout, context)
+        end
+
+        content = HtmlBeautifier.beautify(content)
         write_file(dest, content)
         dest
       end
@@ -57,6 +69,14 @@ module GryphonNest
         dir.mkpath
         path.write(content)
       end
+
+      # @return [String]
+      def read_layout_file
+        File.read(LAYOUT_FILE)
+      rescue IOError, Errno::ENOENT
+        ''
+      end
     end
   end
 end
+
