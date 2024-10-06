@@ -44,7 +44,6 @@ module GryphonNest
 
     # @return [Array<Pathname>]
     def process_content
-      processed_files = []
       renderer = Renderers::MustacheRenderer.new
       renderer.template_path = CONTENT_DIR
       asset_processor = Processors::AssetProcessor.new
@@ -53,12 +52,10 @@ module GryphonNest
         TEMPLATE_EXT => Processors::MustacheProcessor.new(renderer)
       }
 
-      glob("#{CONTENT_DIR}/**/*").each do |source_file|
+      glob("#{CONTENT_DIR}/**/*").map do |source_file|
         processor = processors.fetch(source_file.extname, asset_processor)
-        processed_files << processor.process(source_file)
+        processor.process(source_file)
       end
-
-      processed_files
     end
 
     # @params path [String]
