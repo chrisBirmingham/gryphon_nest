@@ -13,7 +13,7 @@ To install run:
 Or include in your websites `Gemfile`
 
 ```ruby
-gem 'gryphon_nest', '~> 2.1'
+gem 'gryphon_nest', '~> 3.0'
 ```
 
 And run
@@ -36,14 +36,13 @@ Gryphon requires this folder structure:
 
 ```txt
 project_directory/
-        content/
-            index.mustache
-            main.css
-            favicon.ico
-        layouts/
-            main.mustache
-        data/
-            index.yaml
+    content/
+        index.mustache
+        main.css
+        favicon.ico
+    data/
+        index.yaml
+    layout.mustache
 ```
 
 ### Content
@@ -54,7 +53,7 @@ Gryphon will always rebuild template files but will only move asset files if the
 
 ### Layouts
 
-If a `main.mustache` file exists in this folder, it will be used as the wrapper around all mustache files inside your content folder.
+If a `layout.mustache` file exists, it will be used as the wrapper around all mustache files inside your content folder.
 
 An example of this file is: 
 
@@ -79,9 +78,10 @@ The `{{> yield }}` block is required and will be replaced with the content of th
 
 An optional folder containing yaml files providing context for mustache when it renders a template file. Gryphon will use the data file with the same basename as the context file it's currently processing eg `contact.mustache -> contact.yaml`. The provided context will also be available in the layout file if provided.
 
-## Migrating from 2.0
+## Migrating from Version 2
 
 * The `{{{ yield }}}` element in the layout file became the `{{> yield }}` tag
+* The layout file was moved from `layouts/main.mustache` too `./layout.mustache`
 
 ## Migrating from Version 1
 

@@ -55,7 +55,7 @@ module GryphonNest
       def read_context(src)
         basename = src.basename(TEMPLATE_EXT)
         path = "#{DATA_DIR}/#{basename}.yaml"
-        YAML.safe_load_file(path)
+        YAML.safe_load_file(path, symbolize_names: true)
       rescue IOError, Errno::ENOENT
         {}
       rescue Psych::SyntaxError => e
