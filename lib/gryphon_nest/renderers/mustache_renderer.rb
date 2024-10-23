@@ -4,12 +4,12 @@ require 'mustache'
 
 module GryphonNest
   module Renderers
-    # Renders mustache templates to html
+    # Class to override default Mustache behavior
     class MustacheRenderer < Mustache
 
-      # @param name [String]
+      # @param _name [String]
       # @return [String]
-      def partial(name)
+      def partial(_name)
         name = @context[:yield]
         path = "#{template_path}/#{name}.#{template_extension}"
         File.read(path)
@@ -17,4 +17,3 @@ module GryphonNest
     end
   end
 end
-

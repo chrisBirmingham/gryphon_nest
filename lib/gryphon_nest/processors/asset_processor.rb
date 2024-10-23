@@ -4,6 +4,7 @@ require 'fileutils'
 
 module GryphonNest
   module Processors
+    # Default file processor. Moves files from source to destination
     class AssetProcessor
       # @param file [Pathname]
       # @return [Pathname]
@@ -38,4 +39,3 @@ module GryphonNest
     end
   end
 end
-

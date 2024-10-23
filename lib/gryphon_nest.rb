@@ -70,4 +70,3 @@ module GryphonNest
     end
   end
 end
-

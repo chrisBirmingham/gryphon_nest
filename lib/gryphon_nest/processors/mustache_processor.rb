@@ -5,6 +5,7 @@ require 'yaml'
 
 module GryphonNest
   module Processors
+    # Renders a Mustache template into a html file
     class MustacheProcessor
       # @param renderer [Renderers::MustacheRenderer]
       def initialize(renderer)
@@ -18,7 +19,7 @@ module GryphonNest
         dest = dest_name(file)
         msg = File.exist?(dest) ? 'Recreating' : 'Creating'
         puts "#{msg} #{dest}"
-        
+
         @layout ||= read_layout_file
 
         context = read_context(file)
@@ -79,4 +80,3 @@ module GryphonNest
     end
   end
 end
-

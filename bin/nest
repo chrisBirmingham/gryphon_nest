@@ -49,4 +49,3 @@ rescue StandardError => e
   warn e.message
   exit(EXIT_FAILURE)
 end
-
