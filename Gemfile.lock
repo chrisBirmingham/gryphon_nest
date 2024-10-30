@@ -1,19 +1,19 @@
 PATH
   remote: .
   specs:
-    gryphon_nest (2.0.0)
-      htmlbeautifier (~> 1.0)
+    gryphon_nest (3.0.0)
+      htmlbeautifier (~> 1.4)
       mustache (~> 1.0)
       psych (~> 3.3)
-      webrick (~> 1.0)
+      webrick (~> 1.8)
 
 GEM
   remote: https://rubygems.org/
   specs:
-    htmlbeautifier (1.4.2)
+    htmlbeautifier (1.4.3)
     mustache (1.1.1)
     psych (3.3.4)
-    rake (13.1.0)
+    rake (13.2.1)
     webrick (1.8.1)
 
 PLATFORMS

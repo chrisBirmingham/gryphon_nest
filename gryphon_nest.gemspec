@@ -15,18 +15,20 @@ Gem::Specification.new do |spec|
   spec.homepage = 'https://github.com/chrisBirmingham/gryphon_nest'
   spec.required_ruby_version = '>= 2.6.0'
 
-  spec.metadata['homepage_uri'] = spec.homepage
-  spec.metadata['source_code_uri'] = spec.homepage
+  spec.metadata = {
+    'homepage_uri' => spec.homepage,
+    'source_code_uri' => spec.homepage
+  }
 
   spec.files = Dir['lib/**/*', 'LICENSE']
   spec.executables << 'nest'
   spec.require_paths = ['lib']
   spec.license = 'Unlicense'
 
-  spec.add_dependency 'htmlbeautifier', '~> 1.0'
+  spec.add_dependency 'htmlbeautifier', '~> 1.4'
   spec.add_dependency 'mustache', '~> 1.0'
   spec.add_dependency 'psych', '~> 3.3'
-  spec.add_dependency 'webrick', '~> 1.0'
+  spec.add_dependency 'webrick', '~> 1.8'
 
   spec.add_development_dependency 'bundler', '~> 2.3'
   spec.add_development_dependency 'rake', '~> 13.0'

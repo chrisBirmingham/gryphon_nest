@@ -13,20 +13,16 @@ module GryphonNest
   CONTENT_DIR = 'content'
   DATA_DIR = 'data'
   TEMPLATE_EXT = '.mustache'
-  LAYOUT_FILE = 'layouts/main.mustache'
+  LAYOUT_FILE = 'layout.mustache'
 
   class << self
     # @raise [Errors::NotFoundError]
     def build_website
       raise Errors::NotFoundError, "Content directory doesn't exist in the current directory" unless Dir.exist?(CONTENT_DIR)
 
-      existing_files = []
-      if Dir.exist?(BUILD_DIR)
-        existing_files = glob("#{BUILD_DIR}/**/*")
-      else
-        Dir.mkdir(BUILD_DIR)
-      end
+      Dir.mkdir(BUILD_DIR) unless Dir.exist?(BUILD_DIR)
 
+      existing_files = glob("#{BUILD_DIR}/**/*")
       existing_files = existing_files.difference(process_content)
       delete_files(existing_files)
     end
@@ -44,20 +40,18 @@ module GryphonNest
 
     # @return [Array<Pathname>]
     def process_content
-      processed_files = []
       renderer = Renderers::MustacheRenderer.new
+      renderer.template_path = CONTENT_DIR
       asset_processor = Processors::AssetProcessor.new
 
       processors = {
         TEMPLATE_EXT => Processors::MustacheProcessor.new(renderer)
       }
 
-      glob("#{CONTENT_DIR}/**/*").each do |source_file|
+      glob("#{CONTENT_DIR}/**/*").map do |source_file|
         processor = processors.fetch(source_file.extname, asset_processor)
-        processed_files << processor.process(source_file)
+        processor.process(source_file)
       end
-
-      processed_files
     end
 
     # @params path [String]
