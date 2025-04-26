@@ -15,6 +15,7 @@ module GryphonNest
       # @param file [Pathname]
       # @return [Pathname]
       # @raise [Errors::YamlError]
+      # @raise [Errors::ParseError]
       def process(file)
         dest = dest_name(file)
         msg = File.exist?(dest) ? 'Recreating' : 'Creating'
@@ -23,15 +24,7 @@ module GryphonNest
         @layout ||= read_layout_file
 
         context = read_context(file)
-
-        if @layout.empty?
-          content = @renderer.render_file(file, context)
-        else
-          context[:yield] = file.basename(TEMPLATE_EXT)
-          content = @renderer.render(@layout, context)
-        end
-
-        content = HtmlBeautifier.beautify(content)
+        content = build_output(file, context)
         write_file(dest, content)
         dest
       end
@@ -60,7 +53,26 @@ module GryphonNest
       rescue IOError, Errno::ENOENT
         {}
       rescue Psych::SyntaxError => e
-        raise Errors::YamlError, "Encountered error while reading context file. #{e.message}"
+        raise Errors::YamlError, "Encountered error while reading context file. Reason: #{e.message}"
+      end
+
+      # @param file [Pathname]
+      # @param context [Hash]
+      # @return [String]
+      # @raise [Errors::ParseError]
+      def build_output(file, context)
+        if @layout.empty?
+          content = @renderer.render_file(file, context)
+        else
+          context[:yield] = file.basename(TEMPLATE_EXT)
+          content = @renderer.render(@layout, context)
+        end
+
+        HtmlBeautifier.beautify(content, stop_on_errors: true)
+      rescue Mustache::Parser::SyntaxError => e
+        raise Errors::ParseError, "Failed to process mustache template #{file}.\nReason: #{e}"
+      rescue RuntimeError => e
+        raise Errors::ParseError, "Failed to beautify template output #{file}. Reason: #{e.message}"
       end
 
       # @param path [Pathname]

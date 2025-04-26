@@ -13,7 +13,7 @@ To install run:
 Or include in your websites `Gemfile`
 
 ```ruby
-gem 'gryphon_nest', '~> 3.0'
+gem 'gryphon_nest', '~> 3.1'
 ```
 
 And run
@@ -47,13 +47,15 @@ project_directory/
 
 ### Content
 
-Where you put all the content for your website. Mustache template files are expanded to `_site/basename/index.html` for clean URLs e.g. contact.mustache -> `_site/contact/index.html`, except for the `index.mustache` file which is saved as `index.html`. Other files are copied as is and in the same folder structure to the output folder.
+This filder is where you put all the content for your website. Mustache template files are expanded to `_site/basename/index.html` for clean URLs e.g. contact.mustache -> `_site/contact/index.html`, except for the `index.mustache` file which is saved as `index.html`. Non template files are copied as is into the same location in the output directory.
 
-Gryphon will always rebuild template files but will only move asset files if they have been modified. If a file exists in the output folder that doesn't exist in the content folder. It will be deleted.
+Gryphon will always rebuild template files but will only move asset files if they have been modified. If a file exists in the output folder that doesn't exist in the content folder, it will be deleted.
+
+If a template file contains invalid mustache or the resulting html is invalid, gryphon stops processing and exits with an non-zero exit code.
 
 ### Layouts
 
-If a `layout.mustache` file exists, it will be used as the wrapper around all mustache files inside your content folder.
+If a `layout.mustache` file exists, it will be used as the wrapper around all mustache files processed by gryphon.
 
 An example of this file is: 
 
@@ -76,7 +78,7 @@ The `{{> yield }}` block is required and will be replaced with the content of th
 
 ### Data
 
-An optional folder containing yaml files providing context for mustache when it renders a template file. Gryphon will use the data file with the same basename as the context file it's currently processing eg `contact.mustache -> contact.yaml`. The provided context will also be available in the layout file if provided.
+An optional folder containing yaml files providing context for mustache when it renders a template file. Gryphon will use the data file with the same basename as the context file it's currently processing eg `contact.mustache -> contact.yaml`. The provided context will also be available to the layout file if one is provided.
 
 ## Migrating from Version 2
 
@@ -85,8 +87,8 @@ An optional folder containing yaml files providing context for mustache when it 
 
 ## Migrating from Version 1
 
-* The `asset` and `content` folders have been merged into just the `content` folder.
-* Datafiles no longer support the `yml` file extension
+* The `asset` and `content` folders have been merged into the `content` folder.
+* Data files no longer support the `yml` file extension
 * Individual layout files are no longer supported.
 
 ## Contributing
