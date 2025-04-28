@@ -7,29 +7,27 @@ module GryphonNest
   module Processors
     # Renders a Mustache template into a html file
     class MustacheProcessor
+      include Logging
+
       # @param renderer [Renderers::MustacheRenderer]
       def initialize(renderer)
         @renderer = renderer
       end
 
-      # @param file [Pathname]
-      # @return [Pathname]
+      # @param src [Pathname]
+      # @param dest [Pathname]
       # @raise [Errors::YamlError]
       # @raise [Errors::ParseError]
-      def process(file)
-        dest = dest_name(file)
+      def process(src, dest)
         msg = File.exist?(dest) ? 'Recreating' : 'Creating'
-        puts "#{msg} #{dest}"
+        log "#{msg} #{dest}"
 
         @layout ||= read_layout_file
 
-        context = read_context(file)
-        content = build_output(file, context)
+        context = read_context(src)
+        content = build_output(src, context)
         write_file(dest, content)
-        dest
       end
-
-      private
 
       # @param src [Pathname]
       # @return [Pathname]
@@ -42,6 +40,8 @@ module GryphonNest
 
         path.join('index.html')
       end
+
+      private
 
       # @param src [Pathname]
       # @return [Hash]

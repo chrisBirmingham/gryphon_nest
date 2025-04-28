@@ -1,11 +1,8 @@
 # frozen_string_literal: true
 
-require 'fileutils'
-
 module GryphonNest
   module Processors
-    # Default file processor. Moves files from source to destination
-    class AssetProcessor
+    class SassProcessor
       include Logging
 
       # @param src [Pathname]
@@ -13,15 +10,19 @@ module GryphonNest
       def process(src, dest)
         return unless file_modified?(src, dest)
 
-        log "Copying #{src} to #{dest}"
-        dest.dirname.mkpath
-        FileUtils.copy_file(src, dest)
+        msg = File.exist?(dest) ? 'Recreating' : 'Creating'
+        log "#{msg} #{dest}"
+
+        result = Sass.compile(src)
+        File.write(dest, result.css)
       end
 
       # @param src [Pathname]
       # @return [Pathname]
       def dest_name(src)
-        src.sub(CONTENT_DIR, BUILD_DIR)
+        dir = src.dirname
+        path = dir.sub(CONTENT_DIR, BUILD_DIR)
+        path.join(src.basename).sub_ext('.css')
       end
 
       private

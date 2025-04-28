@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
+require 'listen'
 require 'pathname'
 require 'webrick'
 
 module GryphonNest
   autoload :Errors, 'gryphon_nest/errors'
+  autoload :Logging, 'gryphon_nest/logging'
   autoload :Processors, 'gryphon_nest/processors'
   autoload :Renderers, 'gryphon_nest/renderers'
   autoload :VERSION, 'gryphon_nest/version'
@@ -15,21 +17,45 @@ module GryphonNest
   TEMPLATE_EXT = '.mustache'
   LAYOUT_FILE = 'layout.mustache'
 
-  class << self
+  class Nest
+    include Logging
+
+    def initialize
+      @processors = Processors.create
+    end
+
     # @raise [Errors::NotFoundError]
-    def build_website
+    def build
       raise Errors::NotFoundError, "Content directory doesn't exist in the current directory" unless Dir.exist?(CONTENT_DIR)
 
       Dir.mkdir(BUILD_DIR) unless Dir.exist?(BUILD_DIR)
 
       existing_files = glob("#{BUILD_DIR}/**/*")
-      existing_files = existing_files.difference(process_content)
+      content_files = glob("#{CONTENT_DIR}/**/*")
+      existing_files = existing_files.difference(process_files(content_files))
       delete_files(existing_files)
     end
 
+    def watch
+      log 'Watching for content changes'
+      listener = Listen.to(CONTENT_DIR) do |modified, added, removed|
+        mod = modified.union(added).collect { |file| to_relative_path(file) }
+        process_files(mod)
+
+        mod = removed.collect do |file|
+          path = to_relative_path(file)
+          @processors[path.extname].dest_name(path)
+        end
+
+        delete_files(mod)
+      end
+
+      listener.start
+    end
+
     # @param port [Integer]
-    def serve_website(port)
-      puts "Running local server on #{port}"
+    def serve(port)
+      log "Running local server on #{port}"
       server = WEBrick::HTTPServer.new(Port: port, DocumentRoot: BUILD_DIR)
       # Trap ctrl c so we don't get the horrible stack trace
       trap('INT') { server.shutdown }
@@ -38,19 +64,14 @@ module GryphonNest
 
     private
 
+    # @param files [Array<Pathname>]
     # @return [Array<Pathname>]
-    def process_content
-      renderer = Renderers::MustacheRenderer.new
-      renderer.template_path = CONTENT_DIR
-      asset_processor = Processors::AssetProcessor.new
-
-      processors = {
-        TEMPLATE_EXT => Processors::MustacheProcessor.new(renderer)
-      }
-
-      glob("#{CONTENT_DIR}/**/*").map do |source_file|
-        processor = processors.fetch(source_file.extname, asset_processor)
-        processor.process(source_file)
+    def process_files(files)
+      files.collect do |src|
+        processor = @processors[src.extname]
+        dest = processor.dest_name(src)
+        processor.process(src, dest)
+        dest
       end
     end
 
@@ -63,10 +84,16 @@ module GryphonNest
     # @param junk_files [Array<Pathname>]
     def delete_files(junk_files)
       junk_files.each do |f|
-        puts "Deleting #{f}"
+        log "Deleting #{f}"
         f.delete
       end
       nil
+    end
+
+    # @param path [String]
+    # @return [Pathname]
+    def to_relative_path(path)
+      Pathname.new(path).relative_path_from(Dir.pwd)
     end
   end
 end
