@@ -6,14 +6,9 @@ module GryphonNest
   module Processors
     # Default file processor. Moves files from source to destination
     class AssetProcessor
-      include Logging
-
       # @param src [Pathname]
       # @param dest [Pathname]
       def process(src, dest)
-        return unless file_modified?(src, dest)
-
-        log "Copying #{src} to #{dest}"
         dest.dirname.mkpath
         FileUtils.copy_file(src, dest)
       end
@@ -23,8 +18,6 @@ module GryphonNest
       def dest_name(src)
         src.sub(CONTENT_DIR, BUILD_DIR)
       end
-
-      private
 
       # @param src [Pathname]
       # @param des [Pathname]

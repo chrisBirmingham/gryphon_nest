@@ -70,7 +70,14 @@ module GryphonNest
       files.collect do |src|
         processor = @processors[src.extname]
         dest = processor.dest_name(src)
-        processor.process(src, dest)
+
+        if processor.file_modified?(src, dest)
+          msg = File.exist?(dest) ? 'Recreating' : 'Creating'
+          log "#{msg} #{dest}"
+
+          processor.process(src, dest)
+        end
+
         dest
       end
     end

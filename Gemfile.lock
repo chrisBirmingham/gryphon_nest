@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    gryphon_nest (3.2.0)
+    gryphon_nest (4.0.0)
       htmlbeautifier (~> 1.4)
       listen (~> 3.9)
       mustache (~> 1.0)

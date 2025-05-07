@@ -3,16 +3,9 @@
 module GryphonNest
   module Processors
     class SassProcessor
-      include Logging
-
       # @param src [Pathname]
       # @param dest [Pathname]
       def process(src, dest)
-        return unless file_modified?(src, dest)
-
-        msg = File.exist?(dest) ? 'Recreating' : 'Creating'
-        log "#{msg} #{dest}"
-
         result = Sass.compile(src)
         File.write(dest, result.css)
       end
@@ -24,8 +17,6 @@ module GryphonNest
         path = dir.sub(CONTENT_DIR, BUILD_DIR)
         path.join(src.basename).sub_ext('.css')
       end
-
-      private
 
       # @param src [Pathname]
       # @param des [Pathname]
