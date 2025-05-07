@@ -38,12 +38,15 @@ module GryphonNest
 
     def watch
       log 'Watching for content changes'
-      listener = Listen.to(CONTENT_DIR) do |modified, added, removed|
-        mod = modified.union(added).collect { |file| to_relative_path(file) }
+      listener = Listen.to(CONTENT_DIR, relative: true) do |modified, added, removed|
+        mod = modified.union(added).collect do |file|
+          Pathname.new(file)
+        end
+
         process_files(mod)
 
         mod = removed.collect do |file|
-          path = to_relative_path(file)
+          path = Pathname.new(file)
           @processors[path.extname].dest_name(path)
         end
 
@@ -95,12 +98,6 @@ module GryphonNest
         f.delete
       end
       nil
-    end
-
-    # @param path [String]
-    # @return [Pathname]
-    def to_relative_path(path)
-      Pathname.new(path).relative_path_from(Dir.pwd)
     end
   end
 end
