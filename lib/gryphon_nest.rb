@@ -18,10 +18,9 @@ module GryphonNest
   LAYOUT_FILE = 'layout.mustache'
 
   class Nest
-    include Logging
-
     def initialize
       @processors = Processors.create
+      @logger = Logging.create
     end
 
     # @raise [Errors::NotFoundError]
@@ -37,16 +36,16 @@ module GryphonNest
     end
 
     def watch
-      log 'Watching for content changes'
+      @logger.info('Watching for content changes')
       listener = Listen.to(CONTENT_DIR, relative: true) do |modified, added, removed|
         mod = modified.union(added).collect do |file|
-          Pathname.new(file)
+          Pathname(file)
         end
 
         process_files(mod)
 
         mod = removed.collect do |file|
-          path = Pathname.new(file)
+          path = Pathname(file)
           @processors[path.extname].dest_name(path)
         end
 
@@ -58,7 +57,7 @@ module GryphonNest
 
     # @param port [Integer]
     def serve(port)
-      log "Running local server on #{port}"
+      @logger.info("Running local server on #{port}")
       server = WEBrick::HTTPServer.new(Port: port, DocumentRoot: BUILD_DIR)
       # Trap ctrl c so we don't get the horrible stack trace
       trap('INT') { server.shutdown }
@@ -76,8 +75,7 @@ module GryphonNest
 
         if processor.file_modified?(src, dest)
           msg = File.exist?(dest) ? 'Recreating' : 'Creating'
-          log "#{msg} #{dest}"
-
+          @logger.info("#{msg} #{dest}")
           processor.process(src, dest)
         end
 
@@ -94,7 +92,7 @@ module GryphonNest
     # @param junk_files [Array<Pathname>]
     def delete_files(junk_files)
       junk_files.each do |f|
-        log "Deleting #{f}"
+        @logger.info("Deleting #{f}")
         f.delete
       end
       nil
