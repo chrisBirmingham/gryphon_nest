@@ -15,9 +15,7 @@ module GryphonNest
           Processors::MustacheProcessor.new(renderer)
         }
 
-        sass_proc = proc {
-          @sass_processor = Processors::SassProcessor.new
-        }
+        sass_proc = proc { Processors::SassProcessor.new }
 
         @processors['scss'] = sass_proc
         @processors['sass'] = sass_proc

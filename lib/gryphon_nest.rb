@@ -32,25 +32,33 @@ module GryphonNest
 
       existing_files = glob("#{BUILD_DIR}/**/*")
       content_files = glob("#{CONTENT_DIR}/**/*")
-      existing_files = existing_files.difference(process_files(content_files))
-      delete_files(existing_files)
+      processed_files = content_files.collect { |src| process_file(src) }
+      existing_files.difference(processed_files).each { |file| delete_file(file) }
     end
 
     def watch
       @logger.info('Watching for content changes')
-      listener = Listen.to(CONTENT_DIR, relative: true) do |modified, added, removed|
-        mod = modified.union(added).collect do |file|
-          Pathname(file)
-        end
-
-        process_files(mod)
-
-        mod = removed.collect do |file|
+      listener = Listen.to(CONTENT_DIR, DATA_DIR, relative: true) do |modified, added, removed|
+        modified.union(added).each do |file|
           path = Pathname(file)
-          @processors[path.extname].dest_name(path)
+
+          if file.start_with?(DATA_DIR)
+            process_data_file(path)
+          else
+            process_file(path)
+          end
         end
 
-        delete_files(mod)
+        removed.each do |file|
+          path = Pathname(file)
+
+          if file.start_with?(DATA_DIR)
+            process_data_file(path)
+          else
+            path = @processors[path.extname].dest_name(path)
+            delete_file(path)
+          end
+        end
       end
 
       listener.start
@@ -67,21 +75,29 @@ module GryphonNest
 
     private
 
-    # @param files [Array<Pathname>]
-    # @return [Array<Pathname>]
-    def process_files(files)
-      files.collect do |src|
-        processor = @processors[src.extname]
-        dest = processor.dest_name(src)
+    # @param src [Pathname]
+    # @return [Pathname]
+    def process_file(src)
+      processor = @processors[src.extname]
+      dest = processor.dest_name(src)
 
-        if processor.file_modified?(src, dest)
-          msg = File.exist?(dest) ? 'Recreating' : 'Creating'
-          @logger.info("#{msg} #{dest}")
-          processor.process(src, dest)
-        end
-
-        dest
+      if processor.file_modified?(src, dest)
+        msg = File.exist?(dest) ? 'Recreating' : 'Creating'
+        @logger.info("#{msg} #{dest}")
+        processor.process(src, dest)
       end
+
+      dest
+    end
+
+    # @param src [Pathname]
+    # @return [Pathname]
+    def process_data_file(src)
+      src = src.sub(DATA_DIR, CONTENT_DIR).sub_ext(TEMPLATE_EXT)
+
+      return unless src.exist?
+
+      process_file(src)
     end
 
     # @params path [String]
@@ -90,13 +106,10 @@ module GryphonNest
       Pathname.glob(path).reject(&:directory?)
     end
 
-    # @param junk_files [Array<Pathname>]
-    def delete_files(junk_files)
-      junk_files.each do |f|
-        @logger.info("Deleting #{f}")
-        f.delete
-      end
-      nil
+    # @param file [Pathname]
+    def delete_file(file)
+      @logger.info("Deleting #{file}")
+      file.delete
     end
   end
 end
