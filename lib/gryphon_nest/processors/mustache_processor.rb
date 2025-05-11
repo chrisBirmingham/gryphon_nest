@@ -62,12 +62,13 @@ module GryphonNest
       # @return [String]
       # @raise [Errors::ParseError]
       def build_output(file, context)
-        if @layout.empty?
-          content = @renderer.render_file(file, context)
-        else
-          context[:yield] = file.basename(TEMPLATE_EXT)
-          content = @renderer.render(@layout, context)
-        end
+        content =
+          if @layout.empty?
+            @renderer.render_file(file, context)
+          else
+            context[:yield] = file.basename(TEMPLATE_EXT)
+            @renderer.render(@layout, context)
+          end
 
         HtmlBeautifier.beautify(content, stop_on_errors: true)
       rescue Mustache::Parser::SyntaxError => e
@@ -79,8 +80,7 @@ module GryphonNest
       # @param path [Pathname]
       # @param content [String]
       def write_file(path, content)
-        dir = path.dirname
-        dir.mkpath
+        path.dirname.mkpath
         path.write(content)
       end
 

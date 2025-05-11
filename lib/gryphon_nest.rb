@@ -19,8 +19,7 @@ module GryphonNest
 
   class Nest
     def initialize
-      @processors = Processors::ProcessorRegistry.new
-      @processors.build
+      @processors = Processors.create
       @logger = Logging.create
     end
 

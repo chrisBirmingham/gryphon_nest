@@ -6,19 +6,13 @@ module GryphonNest
       def initialize
         @asset_processor = AssetProcessor.new
         @processors = Hash.new(@asset_processor)
+        yield self
       end
 
-      def build
-        @processors[TEMPLATE_EXT] = proc {
-          renderer = Renderers::MustacheRenderer.new
-          renderer.template_path = CONTENT_DIR
-          Processors::MustacheProcessor.new(renderer)
-        }
-
-        sass_proc = proc { Processors::SassProcessor.new }
-
-        @processors['scss'] = sass_proc
-        @processors['sass'] = sass_proc
+      # @param key [String]
+      # @param value [Proc]
+      def []=(key, value)
+        @processors[key] = value
       end
 
       # @param key [String]

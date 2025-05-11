@@ -13,9 +13,7 @@ module GryphonNest
       # @param src [Pathname]
       # @return [Pathname]
       def dest_name(src)
-        dir = src.dirname
-        path = dir.sub(CONTENT_DIR, BUILD_DIR)
-        path.join(src.basename).sub_ext('.css')
+        src.sub(CONTENT_DIR, BUILD_DIR).sub_ext('.css')
       end
 
       # @param src [Pathname]
