@@ -49,8 +49,7 @@ module GryphonNest
       # @return [Hash]
       # @raise [Errors::YamlError]
       def read_context(src)
-        basename = src.basename(TEMPLATE_EXT)
-        path = "#{DATA_DIR}/#{basename}.yaml"
+        path = src.sub(CONTENT_DIR, DATA_DIR).sub_ext('.yaml')
         YAML.safe_load_file(path, symbolize_names: true)
       rescue IOError, Errno::ENOENT
         {}
