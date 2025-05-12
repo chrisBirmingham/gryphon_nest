@@ -7,9 +7,12 @@ module GryphonNest
     class SassProcessor
       # @param src [Pathname]
       # @param dest [Pathname]
+      # @raise [Errors::ParseError]
       def process(src, dest)
         result = Sass.compile(src)
         File.write(dest, result.css)
+      rescue Sass::CompileError => e
+        raise Errors::ParseError, "Failed to process sass style sheet #{src}. Reason:\n#{e.full_message}"
       end
 
       # @param src [Pathname]

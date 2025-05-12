@@ -72,7 +72,7 @@ module GryphonNest
 
         HtmlBeautifier.beautify(content, stop_on_errors: true)
       rescue Mustache::Parser::SyntaxError => e
-        raise Errors::ParseError, "Failed to process mustache template #{file}.\nReason: #{e}"
+        raise Errors::ParseError, "Failed to process mustache template #{file}. Reason:\n#{e}"
       rescue RuntimeError => e
         raise Errors::ParseError, "Failed to beautify template output #{file}. Reason: #{e.message}"
       end
