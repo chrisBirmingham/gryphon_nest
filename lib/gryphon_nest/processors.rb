@@ -19,8 +19,8 @@ module GryphonNest
 
           sass_proc = proc { Processors::SassProcessor.new }
 
-          reg['scss'] = sass_proc
-          reg['sass'] = sass_proc
+          reg['.scss'] = sass_proc
+          reg['.sass'] = sass_proc
         end
       end
     end
