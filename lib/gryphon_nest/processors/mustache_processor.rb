@@ -12,24 +12,17 @@ module GryphonNest
         @renderer = renderer
       end
 
-      # @param file [Pathname]
-      # @return [Pathname]
+      # @param src [Pathname]
+      # @param dest [Pathname]
       # @raise [Errors::YamlError]
       # @raise [Errors::ParseError]
-      def process(file)
-        dest = dest_name(file)
-        msg = File.exist?(dest) ? 'Recreating' : 'Creating'
-        puts "#{msg} #{dest}"
-
+      def process(src, dest)
         @layout ||= read_layout_file
 
-        context = read_context(file)
-        content = build_output(file, context)
+        context = read_context(src)
+        content = build_output(src, context)
         write_file(dest, content)
-        dest
       end
-
-      private
 
       # @param src [Pathname]
       # @return [Pathname]
@@ -43,12 +36,20 @@ module GryphonNest
         path.join('index.html')
       end
 
+      # @param _src [Pathname]
+      # @param _dest [Pathname]
+      # @return [Boolean]
+      def file_modified?(_src, _dest)
+        true
+      end
+
+      private
+
       # @param src [Pathname]
       # @return [Hash]
       # @raise [Errors::YamlError]
       def read_context(src)
-        basename = src.basename(TEMPLATE_EXT)
-        path = "#{DATA_DIR}/#{basename}.yaml"
+        path = src.sub(CONTENT_DIR, DATA_DIR).sub_ext('.yaml')
         YAML.safe_load_file(path, symbolize_names: true)
       rescue IOError, Errno::ENOENT
         {}
@@ -61,16 +62,17 @@ module GryphonNest
       # @return [String]
       # @raise [Errors::ParseError]
       def build_output(file, context)
-        if @layout.empty?
-          content = @renderer.render_file(file, context)
-        else
-          context[:yield] = file.basename(TEMPLATE_EXT)
-          content = @renderer.render(@layout, context)
-        end
+        content =
+          if @layout.empty?
+            @renderer.render_file(file, context)
+          else
+            context[:yield] = file.basename(TEMPLATE_EXT)
+            @renderer.render(@layout, context)
+          end
 
         HtmlBeautifier.beautify(content, stop_on_errors: true)
       rescue Mustache::Parser::SyntaxError => e
-        raise Errors::ParseError, "Failed to process mustache template #{file}.\nReason: #{e}"
+        raise Errors::ParseError, "Failed to process mustache template #{file}. Reason:\n#{e}"
       rescue RuntimeError => e
         raise Errors::ParseError, "Failed to beautify template output #{file}. Reason: #{e.message}"
       end
@@ -78,8 +80,7 @@ module GryphonNest
       # @param path [Pathname]
       # @param content [String]
       def write_file(path, content)
-        dir = path.dirname
-        dir.mkpath
+        path.dirname.mkpath
         path.write(content)
       end
 

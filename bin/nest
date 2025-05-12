@@ -8,7 +8,8 @@ DEFAULT_PORT = 8000
 EXIT_FAILURE = 1
 
 options = {
-  port: DEFAULT_PORT
+  port: DEFAULT_PORT,
+  watch: false
 }
 
 # @param msg [String]
@@ -23,6 +24,8 @@ begin
     opts.banner = 'Usage: nest [build|serve] [options]'
 
     opts.on('-p', '--port [PORT]', Integer, 'Port to run dev server on')
+
+    opts.on('-w', '--watch', 'Watch for file changes when running the local server')
 
     opts.on('-h', '--help', 'Show this message') do
       puts opts
@@ -41,8 +44,14 @@ begin
 
   usage_error("Unknown command #{command}", parser) unless %w[build serve].include?(command)
 
-  GryphonNest.build_website
-  GryphonNest.serve_website(options[:port]) if command == 'serve'
+  nest = GryphonNest::Nest.new
+  nest.build
+
+  if command == 'serve'
+    nest.watch if options[:watch]
+
+    nest.serve(options[:port])
+  end
 rescue OptionParser::ParseError => e
   usage_error(e.message, parser)
 rescue StandardError => e

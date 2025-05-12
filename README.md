@@ -13,7 +13,7 @@ To install run:
 Or include in your websites `Gemfile`
 
 ```ruby
-gem 'gryphon_nest', '~> 3.1'
+gem 'gryphon_nest', '~> 4.0'
 ```
 
 And run
@@ -29,6 +29,12 @@ Gryphon provides the executable `nest` which currently supports two commands:
 * build: Generates your website and stores it in the `_site` folder.
 
 * serve: Builds your website and starts a local server for viewing the built site.
+
+The serve command accepts two options:
+
+* port: Sets the port to listen too while serving content.
+
+* watch: Tells nest to watch for file changes while serving content.
 
 ## Project Strucutre
 
@@ -47,13 +53,15 @@ project_directory/
 
 ### Content
 
-This filder is where you put all the content for your website. Mustache template files are expanded to `_site/basename/index.html` for clean URLs e.g. contact.mustache -> `_site/contact/index.html`, except for the `index.mustache` file which is saved as `index.html`. Non template files are copied as is into the same location in the output directory.
+This filder is where you put all the content for your website. Mustache template files are expanded to `_site/basename/index.html` for clean URLs e.g. contact.mustache -> `_site/contact/index.html`, except for the `index.mustache` file which is saved as `index.html`. Non template files are copied as is into the same location in the output directory. If the sas-embedded gem is available, sass and scss files will be processed.
 
 Gryphon will always rebuild template files but will only move asset files if they have been modified. If a file exists in the output folder that doesn't exist in the content folder, it will be deleted.
 
 If a template file contains invalid mustache or the resulting html is invalid, gryphon stops processing and exits with an non-zero exit code.
 
-### Layouts
+If a file is added, modified or deleted while nest is watching for file changes, those changes will be applied in real time to the currently running server.
+
+### Layout
 
 If a `layout.mustache` file exists, it will be used as the wrapper around all mustache files processed by gryphon.
 
@@ -76,20 +84,13 @@ An example of this file is:
 
 The `{{> yield }}` block is required and will be replaced with the content of the transformed content file.
 
+Unlike content and data files, if this file is modified while gryphon is  watching for file changes, those changes won't be applied and you'll need to restart the local server to view said changes.
+
 ### Data
 
 An optional folder containing yaml files providing context for mustache when it renders a template file. Gryphon will use the data file with the same basename as the context file it's currently processing eg `contact.mustache -> contact.yaml`. The provided context will also be available to the layout file if one is provided.
 
-## Migrating from Version 2
-
-* The `{{{ yield }}}` element in the layout file became the `{{> yield }}` tag
-* The layout file was moved from `layouts/main.mustache` too `./layout.mustache`
-
-## Migrating from Version 1
-
-* The `asset` and `content` folders have been merged into the `content` folder.
-* Data files no longer support the `yml` file extension
-* Individual layout files are no longer supported.
+If a data file is added, modified or deleted while gryphon is watching for file changes, the associated html page will be regenerated should the mustache template exist.
 
 ## Contributing
 
