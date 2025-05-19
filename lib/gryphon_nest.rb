@@ -6,6 +6,7 @@ require 'webrick'
 
 module GryphonNest
   autoload :Errors, 'gryphon_nest/errors'
+  autoload :LayoutFile, 'gryphon_nest/layout_file'
   autoload :Logging, 'gryphon_nest/logging'
   autoload :Processors, 'gryphon_nest/processors'
   autoload :Renderers, 'gryphon_nest/renderers'
@@ -21,18 +22,24 @@ module GryphonNest
     def initialize
       @processors = Processors.create
       @logger = Logging.create
+      @modifications = 0;
     end
 
     # @raise [Errors::NotFoundError]
     def build
-      raise Errors::NotFoundError, "Content directory doesn't exist in the current directory" unless Dir.exist?(CONTENT_DIR)
+      unless Dir.exist?(CONTENT_DIR)
+        raise Errors::NotFoundError, "Content directory doesn't exist in the current directory"
+      end
 
       Dir.mkdir(BUILD_DIR) unless Dir.exist?(BUILD_DIR)
 
       existing_files = glob("#{BUILD_DIR}/**/*")
       content_files = glob("#{CONTENT_DIR}/**/*")
       processed_files = content_files.collect { |src| process_file(src) }
-      existing_files.difference(processed_files).each { |file| delete_file(file) }
+      files_to_delete = existing_files.difference(processed_files)
+      files_to_delete.each { |file| delete_file(file) }
+
+      @logger.info('No changes detected') if @modifications.zero? && files_to_delete.empty?
     end
 
     def watch
@@ -81,6 +88,7 @@ module GryphonNest
       dest = processor.dest_name(src)
 
       if processor.file_modified?(src, dest)
+        @modifications += 1
         msg = File.exist?(dest) ? 'Recreating' : 'Creating'
         @logger.info("#{msg} #{dest}")
         processor.process(src, dest)
