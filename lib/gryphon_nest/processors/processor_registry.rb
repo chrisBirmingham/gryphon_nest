@@ -27,7 +27,7 @@ module GryphonNest
 
         processor
       rescue LoadError
-        @processors[key] = nil
+        @processors.delete(key)
         @asset_processor
       end
     end

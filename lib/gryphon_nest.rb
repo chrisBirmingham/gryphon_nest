@@ -37,30 +37,25 @@ module GryphonNest
 
     def watch
       @logger.info('Watching for content changes')
-      listener = Listen.to(CONTENT_DIR, DATA_DIR, relative: true) do |modified, added, removed|
+      Listen.to(CONTENT_DIR, relative: true) do |modified, added, removed|
         modified.union(added).each do |file|
           path = Pathname(file)
-
-          if file.start_with?(DATA_DIR)
-            process_data_file(path)
-          else
-            process_file(path)
-          end
+          process_file(path)
         end
 
         removed.each do |file|
           path = Pathname(file)
-
-          if file.start_with?(DATA_DIR)
-            process_data_file(path)
-          else
-            path = @processors[path.extname].dest_name(path)
-            delete_file(path)
-          end
+          path = @processors[path.extname].dest_name(path)
+          delete_file(path)
         end
-      end
+      end.start
 
-      listener.start
+      Listen.to(DATA_DIR, relative: true) do |modified, added, removed|
+        modified.union(added, removed).each do |file|
+          path = Pathname(file)
+          process_data_file(path)
+        end
+      end.start
     end
 
     # @param port [Integer]
