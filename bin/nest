@@ -8,6 +8,7 @@ DEFAULT_PORT = 8000
 EXIT_FAILURE = 1
 
 options = {
+  compress: false,
   port: DEFAULT_PORT,
   watch: false
 }
@@ -21,7 +22,9 @@ end
 
 begin
   parser = OptionParser.new do |opts|
-    opts.banner = 'Usage: nest [build|serve] [options]'
+    opts.banner = 'Usage: nest [build|serve|clean] [options]'
+
+    opts.on('-c', '--compress', 'Whether to create a compressed version of the created files')
 
     opts.on('-p', '--port [PORT]', Integer, 'Port to run dev server on')
 
@@ -42,15 +45,20 @@ begin
 
   command = ARGV.fetch(0, 'build')
 
-  usage_error("Unknown command #{command}", parser) unless %w[build serve].include?(command)
+  usage_error("Unknown command #{command}", parser) unless %w[build serve clean].include?(command)
 
-  nest = GryphonNest::Nest.new
-  nest.build
+  nest = GryphonNest::Nest.new(options[:compress])
 
-  if command == 'serve'
-    nest.watch if options[:watch]
+  if command == 'clean'
+    nest.clean
+  else
+    nest.build
 
-    nest.serve(options[:port])
+    if command == 'serve'
+      nest.watch if options[:watch]
+
+      nest.serve(options[:port])
+    end
   end
 rescue OptionParser::ParseError => e
   usage_error(e.message, parser)

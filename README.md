@@ -13,7 +13,7 @@ To install run:
 Or include in your websites `Gemfile`
 
 ```ruby
-gem 'gryphon_nest', '~> 4.0'
+gem 'gryphon_nest', '~> 4.1'
 ```
 
 And run
@@ -24,11 +24,17 @@ bundle install
 
 ## Usage
 
-Gryphon provides the executable `nest` which currently supports two commands:
+Gryphon provides the executable `nest` which currently supports these commands:
 
 * build: Generates your website and stores it in the `_site` folder.
 
 * serve: Builds your website and starts a local server for viewing the built site.
+
+* clean: Deletes the `_site` folder
+
+The build command accepts the option:
+
+* compress: Creates a gzipped version of each created file. Intended for use with web servers that can send gzipped content directly such as nginx via it's [gzip_static module](https://nginx.org/en/docs/http/ngx_http_gzip_static_module.html)
 
 The serve command accepts two options:
 

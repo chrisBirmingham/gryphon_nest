@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+require 'fileutils'
 require 'listen'
 require 'pathname'
 require 'webrick'
+require 'zlib'
 
 module GryphonNest
   autoload :Errors, 'gryphon_nest/errors'
@@ -18,9 +20,11 @@ module GryphonNest
   LAYOUT_FILE = 'layout.mustache'
 
   class Nest
-    def initialize
+    # @param compress [Boolean]
+    def initialize(compress)
       @processors = Processors.create
       @logger = Logging.create
+      @compress = compress
     end
 
     # @raise [Errors::NotFoundError]
@@ -29,10 +33,15 @@ module GryphonNest
 
       Dir.mkdir(BUILD_DIR) unless Dir.exist?(BUILD_DIR)
 
-      existing_files = glob("#{BUILD_DIR}/**/*")
+      existing_files = glob("#{BUILD_DIR}/**/*").reject { |file| file.to_s.end_with?('.gz') }
       content_files = glob("#{CONTENT_DIR}/**/*")
       processed_files = content_files.collect { |src| process_file(src) }
       existing_files.difference(processed_files).each { |file| delete_file(file) }
+    end
+
+    def clean
+      FileUtils.remove_dir(BUILD_DIR, true)
+      @logger.info('Removed build dir')
     end
 
     def watch
@@ -79,9 +88,23 @@ module GryphonNest
         msg = File.exist?(dest) ? 'Recreating' : 'Creating'
         @logger.info("#{msg} #{dest}")
         processor.process(src, dest)
+
+        compress_file(dest) if @compress
       end
 
       dest
+    end
+
+    # @param file [Pathname]
+    def compress_file(file)
+      @logger.info("Compressing #{file}")
+      compressed = "#{file}.gz"
+
+      Zlib::GzipWriter.open(compressed, Zlib::BEST_COMPRESSION) do |gz|
+        gz.mtime = file.mtime
+        gz.orig_name = file.to_s
+        gz.write IO.binread(file)
+      end
     end
 
     # @param src [Pathname]
@@ -104,6 +127,13 @@ module GryphonNest
     def delete_file(file)
       @logger.info("Deleting #{file}")
       file.delete
+
+      compressed = Pathname("#{file}.gz")
+
+      return unless compressed.exist?
+
+      @logger.info("Deleting #{compressed}")
+      compressed.delete
     end
   end
 end
