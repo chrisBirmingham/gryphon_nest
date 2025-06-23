@@ -45,20 +45,21 @@ begin
 
   command = ARGV.fetch(0, 'build')
 
-  usage_error("Unknown command #{command}", parser) unless %w[build serve clean].include?(command)
-
   nest = GryphonNest::Nest.new(options[:compress])
 
-  if command == 'clean'
+  case command
+  when 'clean'
     nest.clean
-  else
+  when 'build'
+    nest.build
+  when 'serve'
     nest.build
 
-    if command == 'serve'
-      nest.watch if options[:watch]
+    nest.watch if options[:watch]
 
-      nest.serve(options[:port])
-    end
+    nest.serve(options[:port])
+  else
+    usage_error("Unknown command #{command}", parser)
   end
 rescue OptionParser::ParseError => e
   usage_error(e.message, parser)
