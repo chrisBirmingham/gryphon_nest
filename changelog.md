@@ -4,6 +4,7 @@
 
 * Added `clean` command
 * Added `compress` flag to created compressed versions of the created files
+* Added `force` flag to force build/rebuild all files
 
 ## Version 4
 

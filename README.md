@@ -32,11 +32,13 @@ Gryphon provides the executable `nest` which currently supports these commands:
 
 * clean: Deletes the `_site` folder
 
-The build command accepts the options:
+The build command accepts these options:
 
-* compress: Creates a gzipped version of each file. Intended for use with web servers that support sending gzipped content directly such as nginx via it's [gzip_static module](https://nginx.org/en/docs/http/ngx_http_gzip_static_module.html)
+* compress: Creates a gzipped version of each file. Intended for use with web servers that support sending gzipped content directly such as nginx via it's [gzip_static module](https://nginx.org/en/docs/http/ngx_http_gzip_static_module.html). This will only build compressed files for files that have been modified, use the force flag to compress everything.
 
-The serve command accepts the options:
+* force: Force builds everything, skipping the file modification check.
+
+The serve command accepts these options:
 
 * port: Sets the port to listen too while serving content.
 

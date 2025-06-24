@@ -4,10 +4,10 @@ require 'fileutils'
 require 'listen'
 require 'pathname'
 require 'webrick'
-require 'zlib'
 
 module GryphonNest
   autoload :Errors, 'gryphon_nest/errors'
+  autoload :GzipCompressor, 'gryphon_nest/gzip_compressor'
   autoload :Logging, 'gryphon_nest/logging'
   autoload :Processors, 'gryphon_nest/processors'
   autoload :Renderers, 'gryphon_nest/renderers'
@@ -20,11 +20,15 @@ module GryphonNest
   LAYOUT_FILE = 'layout.mustache'
 
   class Nest
-    # @param compress [Boolean]
-    def initialize(compress)
+    # @return [GzipCompressor, nil]
+    attr_writer :compressor
+
+    # @param force [Boolean]
+    def initialize(force)
       @processors = Processors.create
       @logger = Logging.create
-      @compress = compress
+      @force = force
+      @compressor = nil
     end
 
     # @raise [Errors::NotFoundError]
@@ -84,12 +88,11 @@ module GryphonNest
       processor = @processors[src.extname]
       dest = processor.dest_name(src)
 
-      if processor.file_modified?(src, dest)
+      if @force || processor.file_modified?(src, dest)
         msg = File.exist?(dest) ? 'Recreating' : 'Creating'
         @logger.info("#{msg} #{dest}")
         processor.process(src, dest)
-
-        compress_file(dest) if @compress
+        compress_file(dest)
       end
 
       dest
@@ -97,14 +100,15 @@ module GryphonNest
 
     # @param file [Pathname]
     def compress_file(file)
-      @logger.info("Compressing #{file}")
-      compressed = "#{file}.gz"
+      return unless @compressor.is_a?(GzipCompressor)
 
-      Zlib::GzipWriter.open(compressed, Zlib::BEST_COMPRESSION) do |gz|
-        gz.mtime = file.mtime
-        gz.orig_name = file.to_s
-        gz.write IO.binread(file)
+      @logger.info("Compressing #{file}")
+      unless @compressor.can_compress?(file)
+        @logger.info("Skipping #{file}")
+        return
       end
+
+      @compressor.compress(file)
     end
 
     # @param src [Pathname]
