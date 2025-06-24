@@ -25,7 +25,7 @@ begin
   parser = OptionParser.new do |opts|
     opts.banner = 'Usage: nest [build|serve|clean] [options]'
 
-    opts.on('-c', '--compress', 'Create compressed versions of each file')
+    opts.on('-c', '--compress', 'Create gzipped compressed versions of each file')
 
     opts.on('-f', '--force', 'Force (re)build all files')
 

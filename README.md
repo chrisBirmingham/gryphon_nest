@@ -36,7 +36,7 @@ The build command accepts these options:
 
 * compress: Creates a gzipped version of each file. Intended for use with web servers that support sending gzipped content directly such as nginx via it's [gzip_static module](https://nginx.org/en/docs/http/ngx_http_gzip_static_module.html). This will only build compressed files for files that have been modified, use the force flag to compress everything.
 
-* force: Force builds everything, skipping the file modification check.
+* force: Force (re)builds everything, skipping the file modification check.
 
 The serve command accepts these options:
 
