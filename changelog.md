@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 4.1
+
+* Added `clean` command
+* Added `compress` flag to created compressed versions of the created files
+* Added `force` flag to force build/rebuild all files
+
 ## Version 4
 
 * Optional sass support added via the `sass-embedded` gem.

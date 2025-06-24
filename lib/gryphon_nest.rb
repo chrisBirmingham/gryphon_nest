@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
+require 'fileutils'
 require 'listen'
 require 'pathname'
 require 'webrick'
 
 module GryphonNest
   autoload :Errors, 'gryphon_nest/errors'
+  autoload :GzipCompressor, 'gryphon_nest/gzip_compressor'
   autoload :Logging, 'gryphon_nest/logging'
   autoload :Processors, 'gryphon_nest/processors'
   autoload :Renderers, 'gryphon_nest/renderers'
@@ -18,9 +20,15 @@ module GryphonNest
   LAYOUT_FILE = 'layout.mustache'
 
   class Nest
-    def initialize
+    # @return [GzipCompressor, nil]
+    attr_writer :compressor
+
+    # @param force [Boolean]
+    def initialize(force)
       @processors = Processors.create
       @logger = Logging.create
+      @force = force
+      @compressor = nil
     end
 
     # @raise [Errors::NotFoundError]
@@ -29,10 +37,15 @@ module GryphonNest
 
       Dir.mkdir(BUILD_DIR) unless Dir.exist?(BUILD_DIR)
 
-      existing_files = glob("#{BUILD_DIR}/**/*")
+      existing_files = glob("#{BUILD_DIR}/**/*").reject { |file| file.to_s.end_with?('.gz') }
       content_files = glob("#{CONTENT_DIR}/**/*")
       processed_files = content_files.collect { |src| process_file(src) }
       existing_files.difference(processed_files).each { |file| delete_file(file) }
+    end
+
+    def clean
+      FileUtils.remove_dir(BUILD_DIR, true)
+      @logger.info('Removed build dir')
     end
 
     def watch
@@ -75,13 +88,27 @@ module GryphonNest
       processor = @processors[src.extname]
       dest = processor.dest_name(src)
 
-      if processor.file_modified?(src, dest)
+      if @force || processor.file_modified?(src, dest)
         msg = File.exist?(dest) ? 'Recreating' : 'Creating'
         @logger.info("#{msg} #{dest}")
         processor.process(src, dest)
+        compress_file(dest)
       end
 
       dest
+    end
+
+    # @param file [Pathname]
+    def compress_file(file)
+      return unless @compressor.is_a?(GzipCompressor)
+
+      @logger.info("Compressing #{file}")
+      unless @compressor.can_compress?(file)
+        @logger.info("Skipping #{file}")
+        return
+      end
+
+      @compressor.compress(file)
     end
 
     # @param src [Pathname]
@@ -104,6 +131,13 @@ module GryphonNest
     def delete_file(file)
       @logger.info("Deleting #{file}")
       file.delete
+
+      compressed = Pathname("#{file}.gz")
+
+      return unless compressed.exist?
+
+      @logger.info("Deleting #{compressed}")
+      compressed.delete
     end
   end
 end
