@@ -92,8 +92,6 @@ An example of this file is:
 
 The `{{> yield }}` block is required and will be replaced with the content of the transformed content file.
 
-Unlike content and data files, if this file is modified while gryphon is  watching for file changes, those changes won't be applied and you'll need to restart the local server to view said changes.
-
 ### Data
 
 An optional folder containing yaml files providing context for mustache when it renders a template file. Gryphon will use the data file with the same basename as the context file it's currently processing eg `contact.mustache -> contact.yaml`. The provided context will also be available to the layout file if one is provided.
