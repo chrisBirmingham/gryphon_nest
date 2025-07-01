@@ -141,10 +141,10 @@ module GryphonNest
     # @param file [Pathname]
     def delete_file(file)
       [file, Pathname("#{file}.gz")].each do |f|
-        if f.exist?
-          @logger.info("Deleting #{f}")
-          f.delete
-        end
+        next unless f.exist?
+
+        @logger.info("Deleting #{f}")
+        f.delete
       end
     end
   end
