@@ -102,7 +102,7 @@ module GryphonNest
       @compressor.compress(file)
     end
 
-    # @param src [Pathname]
+    # @param src [String]
     # @param removal [Boolean]
     def process_changes(src, removal: false)
       if src == LAYOUT_FILE
