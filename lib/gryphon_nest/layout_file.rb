@@ -2,22 +2,36 @@
 
 module GryphonNest
   class LayoutFile
-    attr_reader :content, :mtime
+    # @param path [Pathname]
+    def initialize(path)
+      @path = path
+      @content = nil
+      @last_mtime = Time.now
 
-    # @param content [String]
-    # @param mtime [Time]
-    def initialize(content, mtime)
-      @content = content
-      @mtime = mtime
+      if @path.exist?
+        @content = @path.read
+        @last_mtime = @path.mtime
+      end
     end
 
-    # @return [LayoutFile|nil]
-    def self.create
-      path = Pathname.new(LAYOUT_FILE)
+    # @return [Boolean]
+    def exist?
+      @path.exist?
+    end
 
-      new(File.read(path), path.mtime)
-    rescue IOError, Errno::ENOENT
-      nil
+    # @return [Time]
+    def mtime
+      @path.mtime
+    end
+
+    # @return [String]
+    def content
+      mod_time = mtime
+      return @content if @last_mtime == mod_time
+
+      @content = @path.read
+      @last_mtime = mod_time
+      @content
     end
   end
 end

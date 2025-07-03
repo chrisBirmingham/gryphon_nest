@@ -8,7 +8,7 @@ module GryphonNest
     # Renders a Mustache template into a html file
     class MustacheProcessor
       # @param renderer [Renderers::MustacheRenderer]
-      # @param layout_file [LayoutFile|nil]
+      # @param layout_file [LayoutFile]
       def initialize(renderer, layout_file)
         @renderer = renderer
         @layout_file = layout_file
@@ -48,7 +48,7 @@ module GryphonNest
         path = context_file_name(src)
         return true if path.exist? && path.mtime > mod_time
 
-        return false if @layout_file.nil?
+        return false unless @layout_file.exist?
 
         @layout_file.mtime > mod_time
       end
@@ -78,11 +78,11 @@ module GryphonNest
       # @raise [Errors::ParseError]
       def build_output(file, context)
         content =
-          if @layout_file.nil?
-            @renderer.render_file(file, context)
-          else
+          if @layout_file.exist?
             context[:yield] = file.basename(TEMPLATE_EXT)
             @renderer.render(@layout_file.content, context)
+          else
+            @renderer.render_file(file, context)
           end
 
         HtmlBeautifier.beautify(content, stop_on_errors: true)

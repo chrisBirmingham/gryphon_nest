@@ -12,7 +12,7 @@ module GryphonNest
       def create
         ProcessorRegistry.new do |reg|
           reg[TEMPLATE_EXT] = proc {
-            layout_file = LayoutFile.create
+            layout_file = LayoutFile.new(Pathname(LAYOUT_FILE))
             renderer = Renderers::MustacheRenderer.new
             renderer.template_path = CONTENT_DIR
             Processors::MustacheProcessor.new(renderer, layout_file)

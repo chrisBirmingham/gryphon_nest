@@ -7,11 +7,8 @@ require 'webrick'
 
 module GryphonNest
   autoload :Errors, 'gryphon_nest/errors'
-<<<<<<< HEAD
   autoload :GzipCompressor, 'gryphon_nest/gzip_compressor'
-=======
   autoload :LayoutFile, 'gryphon_nest/layout_file'
->>>>>>> modification_checking
   autoload :Logging, 'gryphon_nest/logging'
   autoload :Processors, 'gryphon_nest/processors'
   autoload :Renderers, 'gryphon_nest/renderers'
