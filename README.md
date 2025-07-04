@@ -61,9 +61,9 @@ project_directory/
 
 ### Content
 
-This filder is where you put all the content for your website. Mustache template files are expanded to `_site/basename/index.html` for clean URLs e.g. contact.mustache -> `_site/contact/index.html`, except for the `index.mustache` file which is saved as `index.html`. Non template files are copied as is into the same location in the output directory. If the sas-embedded gem is available, sass and scss files will be processed.
+This filder is where you put all the content for your website. Mustache template files are expanded to `_site/basename/index.html` for clean URLs e.g. contact.mustache -> `_site/contact/index.html`, except for the `index.mustache` file which is saved as `index.html`. Non template files are copied as is into the same location in the output directory. If the sas-embedded gem is available, any sass or scss files found will be processed via that gem.
 
-Gryphon will only rebuild template files and move asset files over if they have been modified. If a file exists in the output folder that doesn't exist in the content folder, it will be deleted.
+When run, gryphon will first check to see if a file exists inside the `_site` folder already, if it doesn't it will process and move the file otherwise it will check the modification times between the two and only process should the content files modification time be earlier than the destination file's modification time. If a file exists in the output folder that doesn't exist in the content folder, it will be deleted.
 
 If a template file contains invalid mustache or the resulting html is invalid, gryphon stops processing and exits with an non-zero exit code.
 
