@@ -127,6 +127,8 @@ module GryphonNest
           process_file(path)
         end
       end
+    rescue StandardError => e
+      @logger.error(e.message)
     end
 
     # @param src [Pathname]

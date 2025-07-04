@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 4.2
+
+* Update file watching to also watch for changes to the layout file
+* Now checks for whether mustache files have been modified
+* Fixed issue with optional sass compilation
+
 ## Version 4.1
 
 * Added `clean` command

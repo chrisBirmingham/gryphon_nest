@@ -1,17 +1,13 @@
 # frozen_string_literal: true
 
 module GryphonNest
+  # Wrapper class for operations performed on the layout.yaml file
   class LayoutFile
     # @param path [Pathname]
     def initialize(path)
       @path = path
       @content = nil
       @last_mtime = Time.now
-
-      if @path.exist?
-        @content = @path.read
-        @last_mtime = @path.mtime
-      end
     end
 
     # @return [Boolean]
@@ -27,10 +23,12 @@ module GryphonNest
     # @return [String]
     def content
       mod_time = mtime
-      return @content if @last_mtime == mod_time
 
-      @content = @path.read
-      @last_mtime = mod_time
+      if @content.nil? || mod_time > @last_mtime
+        @content = @path.read
+        @last_mtime = mod_time
+      end
+
       @content
     end
   end
