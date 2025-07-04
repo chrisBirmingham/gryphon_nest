@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 4.2
+
+* Update file watching to also watch for changes to the layout file
+* Now checks for whether mustache files have been modified
+
 ## Version 4.1
 
 * Added `clean` command

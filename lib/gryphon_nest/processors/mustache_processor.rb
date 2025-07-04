@@ -8,8 +8,10 @@ module GryphonNest
     # Renders a Mustache template into a html file
     class MustacheProcessor
       # @param renderer [Renderers::MustacheRenderer]
-      def initialize(renderer)
+      # @param layout_file [LayoutFile]
+      def initialize(renderer, layout_file)
         @renderer = renderer
+        @layout_file = layout_file
       end
 
       # @param src [Pathname]
@@ -17,8 +19,6 @@ module GryphonNest
       # @raise [Errors::YamlError]
       # @raise [Errors::ParseError]
       def process(src, dest)
-        @layout ||= read_layout_file
-
         context = read_context(src)
         content = build_output(src, context)
         write_file(dest, content)
@@ -36,11 +36,21 @@ module GryphonNest
         path.join('index.html')
       end
 
-      # @param _src [Pathname]
-      # @param _dest [Pathname]
+      # @param src [Pathname]
+      # @param dest [Pathname]
       # @return [Boolean]
-      def file_modified?(_src, _dest)
-        true
+      def file_modified?(src, dest)
+        return true unless dest.exist?
+
+        mod_time = dest.mtime
+        return true if src.mtime > mod_time
+
+        path = context_file_name(src)
+        return true if path.exist? && path.mtime > mod_time
+
+        return false unless @layout_file.exist?
+
+        @layout_file.mtime > mod_time
       end
 
       private
@@ -49,12 +59,17 @@ module GryphonNest
       # @return [Hash]
       # @raise [Errors::YamlError]
       def read_context(src)
-        path = src.sub(CONTENT_DIR, DATA_DIR).sub_ext('.yaml')
-        YAML.safe_load_file(path, symbolize_names: true)
+        YAML.safe_load_file(context_file_name(src), symbolize_names: true)
       rescue IOError, Errno::ENOENT
         {}
       rescue Psych::SyntaxError => e
         raise Errors::YamlError, "Encountered error while reading context file. Reason: #{e.message}"
+      end
+
+      # @param src [Pathname]
+      # @return [Pathname]
+      def context_file_name(src)
+        src.sub(CONTENT_DIR, DATA_DIR).sub_ext('.yaml')
       end
 
       # @param file [Pathname]
@@ -63,11 +78,11 @@ module GryphonNest
       # @raise [Errors::ParseError]
       def build_output(file, context)
         content =
-          if @layout.empty?
-            @renderer.render_file(file, context)
-          else
+          if @layout_file.exist?
             context[:yield] = file.basename(TEMPLATE_EXT)
-            @renderer.render(@layout, context)
+            @renderer.render(@layout_file.content, context)
+          else
+            @renderer.render_file(file, context)
           end
 
         HtmlBeautifier.beautify(content, stop_on_errors: true)
@@ -82,13 +97,6 @@ module GryphonNest
       def write_file(path, content)
         path.dirname.mkpath
         path.write(content)
-      end
-
-      # @return [String]
-      def read_layout_file
-        File.read(LAYOUT_FILE)
-      rescue IOError, Errno::ENOENT
-        ''
       end
     end
   end
