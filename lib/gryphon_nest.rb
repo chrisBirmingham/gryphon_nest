@@ -6,8 +6,8 @@ require 'pathname'
 require 'webrick'
 
 module GryphonNest
+  autoload :Compressors, 'gryphon_nest/compressors'
   autoload :Errors, 'gryphon_nest/errors'
-  autoload :GzipCompressor, 'gryphon_nest/gzip_compressor'
   autoload :LayoutFile, 'gryphon_nest/layout_file'
   autoload :Logging, 'gryphon_nest/logging'
   autoload :Processors, 'gryphon_nest/processors'
@@ -21,15 +21,13 @@ module GryphonNest
   LAYOUT_FILE = 'layout.mustache'
 
   class Nest
-    # @return [GzipCompressor, nil]
-    attr_writer :compressor
-
+    # @param compress [Boolean]
     # @param force [Boolean]
-    def initialize(force)
+    def initialize(compress, force)
       @processors = Processors.create
       @logger = Logging.create
       @force = force
-      @compressor = nil
+      @compressors = compress ? Compressors.create : []
       @modifications = 0
     end
 
@@ -41,7 +39,7 @@ module GryphonNest
 
       Dir.mkdir(BUILD_DIR) unless Dir.exist?(BUILD_DIR)
 
-      existing_files = glob(BUILD_DIR, '[!.gz]')
+      existing_files = glob(BUILD_DIR, '{!.gz,!.br}')
       content_files = glob(CONTENT_DIR)
       processed_files = content_files.collect { |src| process_file(src) }
       files_to_delete = existing_files.difference(processed_files)
@@ -99,12 +97,12 @@ module GryphonNest
 
     # @param file [Pathname]
     def compress_file(file)
-      return unless @compressor.is_a?(GzipCompressor)
+      return if @compressors.empty?
 
-      return unless @compressor.can_compress?(file)
+      return unless Compressors.can_compress?(file)
 
       @logger.info("Compressing #{file}")
-      @compressor.compress(file)
+      @compressors.each { |compressor| compressor.compress(file) }
     end
 
     # @param src [String]
@@ -147,7 +145,11 @@ module GryphonNest
 
     # @param file [Pathname]
     def delete_file(file)
-      [file, Pathname("#{file}.gz")].each do |f|
+      files = [file]
+
+      @compressors.each { |compressor| files.append("#{file}#{compressor.extname}") }
+
+      files.each do |f|
         next unless f.exist?
 
         @logger.info("Deleting #{f}")
