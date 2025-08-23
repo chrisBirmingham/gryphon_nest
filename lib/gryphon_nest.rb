@@ -101,12 +101,9 @@ module GryphonNest
     def compress_file(file)
       return unless @compressor.is_a?(GzipCompressor)
 
-      @logger.info("Compressing #{file}")
-      unless @compressor.can_compress?(file)
-        @logger.info("Skipping #{file}")
-        return
-      end
+      return unless @compressor.can_compress?(file)
 
+      @logger.info("Compressing #{file}")
       @compressor.compress(file)
     end
 
