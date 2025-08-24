@@ -3,6 +3,7 @@
 ## Version 4.2.1
 
 * Added optional brotli compression support
+* Limit compression of files to text files only
 
 ## Version 4.2
 
