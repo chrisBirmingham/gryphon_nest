@@ -13,7 +13,7 @@ To install run:
 Or include in your websites `Gemfile`
 
 ```ruby
-gem 'gryphon_nest', '~> 4.1'
+gem 'gryphon_nest', '~> 4.2'
 ```
 
 And run
@@ -34,7 +34,7 @@ Gryphon provides the executable `nest` which currently supports these commands:
 
 The build command accepts these options:
 
-* compress: Creates a gzipped version of each file. Intended for use with web servers that support sending gzipped content directly such as nginx via it's [gzip_static module](https://nginx.org/en/docs/http/ngx_http_gzip_static_module.html). This will only build compressed files for files that have been modified, use the force flag to compress everything.
+* compress: Creates compressed versions of text files. This options will only build compressed files for files that have been modified, use the force flag to compress everything.
 
 * force: Force (re)builds everything, skipping the file modification check.
 
@@ -97,6 +97,12 @@ The `{{> yield }}` block is required and will be replaced with the content of th
 An optional folder containing yaml files providing context for mustache when it renders a template file. Gryphon will use the data file with the same basename as the context file it's currently processing eg `contact.mustache -> contact.yaml`. The provided context will also be available to the layout file if one is provided.
 
 If a data file is added, modified or deleted while gryphon is watching for file changes, the associated html page will be regenerated should the mustache template exist.
+
+## Compression
+
+When the `-c` option is provided, gryphon will compress text files using gzip compression. This is intended for use with web servers that support sending compressed content directly such as nginx via it's [gzip_static module](https://nginx.org/en/docs/http/ngx_http_gzip_static_module.html).
+
+If the [brotli](https://github.com/miyucy/brotli) gem is installed, gryphon will also created a brotli compressed version of said file.
 
 ## Contributing
 

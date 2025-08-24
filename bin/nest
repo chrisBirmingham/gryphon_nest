@@ -48,8 +48,7 @@ begin
 
   command = ARGV.fetch(0, 'build')
 
-  nest = GryphonNest::Nest.new(options[:force])
-  nest.compressor = GryphonNest::GzipCompressor.new if options[:compress]
+  nest = GryphonNest::Nest.new(options[:compress], options[:force])
 
   case command
   when 'clean'
