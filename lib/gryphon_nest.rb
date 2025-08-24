@@ -145,7 +145,7 @@ module GryphonNest
 
     # @param file [Pathname]
     def delete_file(file)
-      @logger.info("Deleting #{f}")
+      @logger.info("Deleting #{file}")
       file.delete
 
       @compressors.each do |compressor|

@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 4.2.1
+
+* Added optional brotli compression support
+
 ## Version 4.2
 
 * Update file watching to also watch for changes to the layout file
