@@ -145,15 +145,15 @@ module GryphonNest
 
     # @param file [Pathname]
     def delete_file(file)
-      files = [file]
+      @logger.info("Deleting #{f}")
+      file.delete
 
-      @compressors.each { |compressor| files.append("#{file}#{compressor.extname}") }
+      @compressors.each do |compressor|
+        compressed_file = "#{file}#{compressor.extname}"
+        next unless compressed_file.exist?
 
-      files.each do |f|
-        next unless f.exist?
-
-        @logger.info("Deleting #{f}")
-        f.delete
+        @logger.info("Deleting #{compressed_file}")
+        compressed_file.delete
       end
     end
   end
