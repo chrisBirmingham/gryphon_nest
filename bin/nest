@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require 'gryphon_nest'
+require 'gryphon'
 require 'optparse'
 
 DEFAULT_PORT = 8000
@@ -23,7 +23,10 @@ end
 
 begin
   parser = OptionParser.new do |opts|
-    opts.banner = 'Usage: nest [build|serve|clean] [options]'
+    opts.banner = 'Usage: nest [build|serve|clean] [options]
+Yet another static website builder using mustache and sass'
+
+    opts.separator ''
 
     opts.on('-c', '--compress', 'Create gzipped compressed versions of each file')
 
@@ -39,7 +42,7 @@ begin
     end
 
     opts.on('-v', '--version', 'Print version') do
-      puts GryphonNest::VERSION
+      puts Nest::VERSION
       exit
     end
   end
@@ -48,7 +51,7 @@ begin
 
   command = ARGV.fetch(0, 'build')
 
-  nest = GryphonNest::Nest.new(options[:compress], options[:force])
+  nest = Nest::Nest.new(options[:compress], options[:force])
 
   case command
   when 'clean'

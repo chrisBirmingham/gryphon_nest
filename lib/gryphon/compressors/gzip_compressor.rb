@@ -2,7 +2,7 @@
 
 require 'zlib'
 
-module GryphonNest
+module Gryphon
   module Compressors
     class GzipCompressor
       def extname

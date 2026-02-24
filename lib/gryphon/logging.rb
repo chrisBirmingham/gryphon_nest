@@ -2,7 +2,7 @@
 
 require 'logger'
 
-module GryphonNest
+module Gryphon
   # Mixing module used for logging messages to the console
   module Logging
     class << self

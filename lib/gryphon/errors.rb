@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module GryphonNest
+module Gryphon
   module Errors
     class NotFoundError < StandardError; end
 

@@ -5,7 +5,7 @@ require 'listen'
 require 'pathname'
 require 'webrick'
 
-module GryphonNest
+module Gryphon
   autoload :Compressors, 'gryphon_nest/compressors'
   autoload :Errors, 'gryphon_nest/errors'
   autoload :LayoutFile, 'gryphon_nest/layout_file'
@@ -16,7 +16,6 @@ module GryphonNest
 
   BUILD_DIR = '_site'
   CONTENT_DIR = 'content'
-  DATA_DIR = 'data'
   TEMPLATE_EXT = '.mustache'
   LAYOUT_FILE = 'layout.mustache'
 
@@ -59,7 +58,7 @@ module GryphonNest
       # Bypass modification checks, we already know the files been changed
       @force = true
 
-      only = [/^#{CONTENT_DIR}/, /^#{DATA_DIR}/, /^#{LAYOUT_FILE}$/]
+      only = [/^#{CONTENT_DIR}/, /^#{LAYOUT_FILE}$/]
       Listen.to('.', relative: true, only: only) do |modified, added, removed|
         modified.union(added).each { |file| process_changes(file) }
 
@@ -113,9 +112,7 @@ module GryphonNest
       else
         path = Pathname(src)
 
-        if src.start_with?(DATA_DIR)
-          process_data_file(path)
-        elsif removal
+        if removal
           path = @processors[path.extname].dest_name(path)
           delete_file(path)
         else
@@ -124,16 +121,6 @@ module GryphonNest
       end
     rescue StandardError => e
       @logger.error(e.message)
-    end
-
-    # @param src [Pathname]
-    # @return [Pathname]
-    def process_data_file(src)
-      src = src.sub(DATA_DIR, CONTENT_DIR).sub_ext(TEMPLATE_EXT)
-
-      return unless src.exist?
-
-      process_file(src)
     end
 
     # @params base [String]
@@ -149,7 +136,7 @@ module GryphonNest
       file.delete
 
       @compressors.each do |compressor|
-        compressed_file = "#{file}#{compressor.extname}"
+        compressed_file = Pathname.new("#{file}#{compressor.extname}")
         next unless compressed_file.exist?
 
         @logger.info("Deleting #{compressed_file}")

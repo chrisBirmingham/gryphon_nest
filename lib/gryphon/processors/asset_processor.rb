@@ -1,24 +1,22 @@
 # frozen_string_literal: true
 
-require 'sass-embedded'
+require 'fileutils'
 
-module GryphonNest
+module Gryphon
   module Processors
-    class SassProcessor
+    # Default file processor. Moves files from source to destination
+    class AssetProcessor
       # @param src [Pathname]
       # @param dest [Pathname]
-      # @raise [Errors::ParseError]
       def process(src, dest)
-        result = Sass.compile(src)
-        File.write(dest, result.css)
-      rescue Sass::CompileError => e
-        raise Errors::ParseError, "Failed to process sass style sheet #{src}. Reason:\n#{e.full_message}"
+        dest.dirname.mkpath
+        FileUtils.copy_file(src, dest)
       end
 
       # @param src [Pathname]
       # @return [Pathname]
       def dest_name(src)
-        src.sub(CONTENT_DIR, BUILD_DIR).sub_ext('.css')
+        src.sub(CONTENT_DIR, BUILD_DIR)
       end
 
       # @param src [Pathname]

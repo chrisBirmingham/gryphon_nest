@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module GryphonNest
+module Gryphon
   module Compressors
     autoload :BrotliCompressor, 'gryphon_nest/compressors/brotli_compressor'
     autoload :GzipCompressor, 'gryphon_nest/compressors/gzip_compressor'
@@ -23,17 +23,18 @@ module GryphonNest
       # @param file [Pathname]
       # @return [Boolean]
       def can_compress?(file)
-        file.size >= 20 && COMPRESSABLE_FILETYPES.include?(file.extname)
+        file.size >= 40 && COMPRESSABLE_FILETYPES.include?(file.extname)
       end
 
       # return [Array<Object>]
       def create
         compressors = [GzipCompressor.new]
 
-        require 'brotli'
-        compressors.append(BrotliCompressor.new)
-        compressors
-      rescue LoadError
+        begin
+          require 'brotli'
+          compressors.append(BrotliCompressor.new)
+        rescue LoadError; end
+
         compressors
       end
     end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module GryphonNest
+module Gryphon
   # Wrapper class for operations performed on the layout.yaml file
   class LayoutFile
     # @param path [Pathname]
