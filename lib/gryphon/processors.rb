@@ -2,27 +2,30 @@
 
 module Gryphon
   module Processors
-    autoload :AssetProcessor, 'gryphon_nest/processors/asset_processor'
-    autoload :MustacheProcessor, 'gryphon_nest/processors/mustache_processor'
-    autoload :ProcessorRegistry, 'gryphon_nest/processors/processor_registry'
-    autoload :SassProcessor, 'gryphon_nest/processors/sass_processor.rb'
+    autoload :AssetProcessor, 'gryphon/processors/asset_processor'
+    autoload :MustacheProcessor, 'gryphon/processors/mustache_processor'
+    autoload :SassProcessor, 'gryphon/processors/sass_processor.rb'
 
     class << self
-      # @return [ProcessorRegistry]
+      # @return [Array]
       def create
-        ProcessorRegistry.new do |reg|
-          reg[TEMPLATE_EXT] = proc {
-            layout_file = LayoutFile.new(Pathname(LAYOUT_FILE))
-            renderer = Renderers::MustacheRenderer.new
-            renderer.template_path = CONTENT_DIR
-            Processors::MustacheProcessor.new(renderer, layout_file)
-          }
+        asset_processor = AssetProcessor.new
+        processors = Hash.new(@asset_processor)
 
-          sass_proc = proc { Processors::SassProcessor.new }
+        layout_file = LayoutFile.new(Pathname(LAYOUT_FILE))
+        renderer = Renderers::MustacheRenderer.new
+        renderer.template_path = CONTENT_DIR
+        processors[TEMPLATE_EXT] = Processors::MustacheProcessor.new(renderer, layout_file)
 
-          reg['.scss'] = sass_proc
-          reg['.sass'] = sass_proc
-        end
+        begin
+          require 'sass-embedded'
+          sass = Processors::SassProcessor.new
+
+          processors['.scss'] = sass
+          processors['.sass'] = sass
+        rescue LoadError; end
+
+        processors
       end
     end
   end

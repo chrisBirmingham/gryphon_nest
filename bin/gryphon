@@ -42,16 +42,18 @@ Yet another static website builder using mustache and sass'
     end
 
     opts.on('-v', '--version', 'Print version') do
-      puts Nest::VERSION
+      puts Gryphon::VERSION
       exit
     end
   end
 
+  ARGV << '-h' if ARGV.empty?
+
   parser.parse!(into: options)
 
-  command = ARGV.fetch(0, 'build')
+  command = ARGV[0]
 
-  nest = Nest::Nest.new(options[:compress], options[:force])
+  nest = Gryphon::Nest.new(options[:compress], options[:force])
 
   case command
   when 'clean'

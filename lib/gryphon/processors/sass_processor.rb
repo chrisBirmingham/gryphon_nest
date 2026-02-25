@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'sass-embedded'
-
 module Gryphon
   module Processors
     class SassProcessor

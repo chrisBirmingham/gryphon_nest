@@ -2,8 +2,8 @@
 
 module Gryphon
   module Compressors
-    autoload :BrotliCompressor, 'gryphon_nest/compressors/brotli_compressor'
-    autoload :GzipCompressor, 'gryphon_nest/compressors/gzip_compressor'
+    autoload :BrotliCompressor, 'gryphon/compressors/brotli_compressor'
+    autoload :GzipCompressor, 'gryphon/compressors/gzip_compressor'
 
     class << self
       COMPRESSABLE_FILETYPES = %w[

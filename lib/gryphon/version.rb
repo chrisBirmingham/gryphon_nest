@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
 module Gryphon
-  VERSION = '4.2.1'
+  VERSION = '1.0.0'
 end
