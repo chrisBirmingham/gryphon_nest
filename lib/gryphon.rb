@@ -6,6 +6,7 @@ require 'pathname'
 require 'webrick'
 
 module Gryphon
+  autoload :Cli, 'gryphon/cli'
   autoload :Compressors, 'gryphon/compressors'
   autoload :Errors, 'gryphon/errors'
   autoload :LayoutFile, 'gryphon/layout_file'

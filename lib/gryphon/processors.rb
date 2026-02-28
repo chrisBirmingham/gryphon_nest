@@ -10,7 +10,7 @@ module Gryphon
       # @return [Array]
       def create
         asset_processor = AssetProcessor.new
-        processors = Hash.new(@asset_processor)
+        processors = Hash.new(asset_processor)
 
         layout_file = LayoutFile.new(Pathname(LAYOUT_FILE))
         renderer = Renderers::MustacheRenderer.new

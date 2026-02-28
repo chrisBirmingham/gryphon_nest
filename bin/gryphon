@@ -2,76 +2,8 @@
 # frozen_string_literal: true
 
 require 'gryphon'
-require 'optparse'
 
-DEFAULT_PORT = 8000
-EXIT_FAILURE = 1
+ARGV << '-h' if ARGV.empty?
 
-options = {
-  compress: false,
-  force: false,
-  port: DEFAULT_PORT,
-  watch: false
-}
-
-# @param msg [String]
-# @param parser [OptionParser]
-def usage_error(msg, parser)
-  warn(msg, parser)
-  exit(EXIT_FAILURE)
-end
-
-begin
-  parser = OptionParser.new do |opts|
-    opts.banner = 'Usage: nest [build|serve|clean] [options]
-Yet another static website builder using mustache and sass'
-
-    opts.separator ''
-
-    opts.on('-c', '--compress', 'Create gzipped compressed versions of each file')
-
-    opts.on('-f', '--force', 'Force (re)build all files')
-
-    opts.on('-p', '--port [PORT]', Integer, 'Port to run dev server on')
-
-    opts.on('-w', '--watch', 'Watch for file changes when running the local server')
-
-    opts.on('-h', '--help', 'Show this message') do
-      puts opts
-      exit
-    end
-
-    opts.on('-v', '--version', 'Print version') do
-      puts Gryphon::VERSION
-      exit
-    end
-  end
-
-  ARGV << '-h' if ARGV.empty?
-
-  parser.parse!(into: options)
-
-  command = ARGV[0]
-
-  nest = Gryphon::Nest.new(options[:compress], options[:force])
-
-  case command
-  when 'clean'
-    nest.clean
-  when 'build'
-    nest.build
-  when 'serve'
-    nest.build
-
-    nest.watch if options[:watch]
-
-    nest.serve(options[:port])
-  else
-    usage_error("Unknown command #{command}", parser)
-  end
-rescue OptionParser::ParseError => e
-  usage_error(e.message, parser)
-rescue StandardError => e
-  warn e.message
-  exit(EXIT_FAILURE)
-end
+cli = Gryphon::Cli.new
+cli.run
