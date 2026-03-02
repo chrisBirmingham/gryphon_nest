@@ -16,9 +16,7 @@ module Gryphon
 
       # @param src [Pathname]
       # @return [Pathname]
-      def dest_name(src)
-        src.sub(CONTENT_DIR, BUILD_DIR).sub_ext('.css')
-      end
+      def dest_name(src) = src.sub(CONTENT_DIR, BUILD_DIR).sub_ext('.css')
 
       # @param src [Pathname]
       # @param des [Pathname]

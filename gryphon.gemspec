@@ -13,7 +13,7 @@ Gem::Specification.new do |spec|
   spec.summary = 'Yet another static site generator'
   spec.description = 'A slightly opinionated static website generator for those who like working in html and mustache'
   spec.homepage = 'https://github.com/chrisBirmingham/gryphon'
-  spec.required_ruby_version = '>= 2.6.0'
+  spec.required_ruby_version = '>= 3.0.0'
 
   spec.metadata = {
     'homepage_uri' => spec.homepage,

@@ -11,14 +11,10 @@ module Gryphon
     end
 
     # @return [Boolean]
-    def exist?
-      @path.exist?
-    end
+    def exist? = @path.exist?
 
     # @return [Time]
-    def mtime
-      @path.mtime
-    end
+    def mtime = @path.mtime
 
     # @return [String]
     def content

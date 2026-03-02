@@ -3,9 +3,8 @@
 module Gryphon
   module Compressors
     class BrotliCompressor
-      def extname
-        '.br'
-      end
+      # @return [String]
+      def extname = '.br'
 
       # @param file [Pathname]
       def compress(file)

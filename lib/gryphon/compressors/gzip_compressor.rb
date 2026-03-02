@@ -5,9 +5,8 @@ require 'zlib'
 module Gryphon
   module Compressors
     class GzipCompressor
-      def extname
-        '.gz'
-      end
+      # @return [String]
+      def extname = '.gz'
 
       # @param file [Pathname]
       def compress(file)

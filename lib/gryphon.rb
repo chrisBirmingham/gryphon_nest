@@ -55,6 +55,20 @@ module Gryphon
       log('Removed build dir')
     end
 
+    # @param port [Integer]
+    # @param monitor [Boolean]
+    def serve(port, monitor)
+      watch if monitor
+
+      log("Running local server on #{port}")
+      server = WEBrick::HTTPServer.new(Port: port, DocumentRoot: BUILD_DIR, AccessLog: [])
+      # Trap ctrl c so we don't get the horrible stack trace
+      trap('INT') { server.shutdown }
+      server.start
+    end
+
+    private
+
     def watch
       log('Watching for content changes')
 
@@ -68,17 +82,6 @@ module Gryphon
         removed.each { |file| process_changes(file, removal: true) }
       end.start
     end
-
-    # @param port [Integer]
-    def serve(port)
-      log("Running local server on #{port}")
-      server = WEBrick::HTTPServer.new(Port: port, DocumentRoot: BUILD_DIR, AccessLog: [])
-      # Trap ctrl c so we don't get the horrible stack trace
-      trap('INT') { server.shutdown }
-      server.start
-    end
-
-    private
 
     # @param src [Pathname]
     # @return [Pathname]

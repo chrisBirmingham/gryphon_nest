@@ -9,8 +9,7 @@ module Gryphon
     class << self
       # @return [Array<Object>]
       def create
-        asset_processor = AssetProcessor.new
-        processors = Hash.new(asset_processor)
+        processors = Hash.new(AssetProcessor.new)
 
         layout_file = LayoutFile.new(Pathname(LAYOUT_FILE))
         renderer = Renderers::MustacheRenderer.new
@@ -20,7 +19,6 @@ module Gryphon
         begin
           require 'sass-embedded'
           sass = Processors::SassProcessor.new
-
           processors['.scss'] = sass
           processors['.sass'] = sass
         rescue LoadError; end

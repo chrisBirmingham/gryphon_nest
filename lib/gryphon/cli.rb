@@ -24,7 +24,7 @@ module Gryphon
       usage_error(e.message)
     rescue Errors::GryphonError => e
       warn e.message
-      exit 1
+      exit false
     end
 
     private
@@ -41,17 +41,12 @@ module Gryphon
         options[:force]
       )
 
-      case command
-      when 'clean'
+      if command == 'clean'
         nest.clean
-      when 'build'
-        nest.build
-      when 'serve'
+      else
         nest.build
 
-        nest.watch if options[:watch]
-
-        nest.serve(options[:port])
+        nest.serve(options[:port], options[:watch]) if command == 'serve'
       end
     end
 
@@ -86,9 +81,9 @@ Yet another static website builder using mustache and sass'
 
     # @param msg [String]
     def usage_error(msg)
-      warn "gryphon: #{msg}"
-      warn "Try 'gryphon -h' for more information"
-      exit 1
+      warn "gryphon: #{msg}
+Try 'gryphon -h' for more information"
+      exit false
     end
   end
 end
