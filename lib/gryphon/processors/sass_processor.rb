@@ -2,6 +2,7 @@
 
 module Gryphon
   module Processors
+    # Renders a sass file into a css file
     class SassProcessor
       # @param src [Pathname]
       # @param dest [Pathname]
@@ -10,7 +11,7 @@ module Gryphon
         result = Sass.compile(src)
         File.write(dest, result.css)
       rescue Sass::CompileError => e
-        raise Errors::ParseError, "Failed to process sass style sheet #{src}. Reason:\n#{e.full_message}"
+        raise Errors::ParseError, "Failed to process sass style sheet #{src}. Reason: #{e.full_message}"
       end
 
       # @param src [Pathname]

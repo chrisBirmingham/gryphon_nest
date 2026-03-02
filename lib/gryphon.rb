@@ -21,17 +21,19 @@ module Gryphon
   LAYOUT_FILE = 'layout.mustache'
 
   class Nest
-    # @param compress [Boolean]
+    include Logging
+
+    # @param processors [Array<Object>]
+    # @param compressors [Array<Object>]
     # @param force [Boolean]
-    def initialize(compress, force)
-      @processors = Processors.create
-      @logger = Logging.create
+    def initialize(processors, compressors, force)
+      @processors = processors
+      @compressors = compressors
       @force = force
-      @compressors = compress ? Compressors.create : []
       @modifications = 0
     end
 
-    # @raise [Errors::NotFoundError]
+    # @raise [Errors::GryphonError]
     def build
       unless Dir.exist?(CONTENT_DIR)
         raise Errors::NotFoundError, "Content directory doesn't exist in the current directory"
@@ -45,16 +47,16 @@ module Gryphon
       files_to_delete = existing_files.difference(processed_files)
       files_to_delete.each { |file| delete_file(file) }
 
-      @logger.info('No changes detected') if @modifications.zero? && files_to_delete.empty?
+      log('No changes detected') if @modifications.zero? && files_to_delete.empty?
     end
 
     def clean
       FileUtils.remove_dir(BUILD_DIR, true)
-      @logger.info('Removed build dir')
+      log('Removed build dir')
     end
 
     def watch
-      @logger.info('Watching for content changes')
+      log('Watching for content changes')
 
       # Bypass modification checks, we already know the files been changed
       @force = true
@@ -69,8 +71,8 @@ module Gryphon
 
     # @param port [Integer]
     def serve(port)
-      @logger.info("Running local server on #{port}")
-      server = WEBrick::HTTPServer.new(Port: port, DocumentRoot: BUILD_DIR)
+      log("Running local server on #{port}")
+      server = WEBrick::HTTPServer.new(Port: port, DocumentRoot: BUILD_DIR, AccessLog: [])
       # Trap ctrl c so we don't get the horrible stack trace
       trap('INT') { server.shutdown }
       server.start
@@ -87,7 +89,7 @@ module Gryphon
       if @force || processor.file_modified?(src, dest)
         @modifications += 1
         msg = File.exist?(dest) ? 'Recreating' : 'Creating'
-        @logger.info("#{msg} #{dest}")
+        log("#{msg} #{dest}")
         processor.process(src, dest)
         compress_file(dest)
       end
@@ -101,7 +103,7 @@ module Gryphon
 
       return unless Compressors.can_compress?(file)
 
-      @logger.info("Compressing #{file}")
+      log("Compressing #{file}")
       @compressors.each { |compressor| compressor.compress(file) }
     end
 
@@ -120,8 +122,8 @@ module Gryphon
           process_file(path)
         end
       end
-    rescue StandardError => e
-      @logger.error(e.message)
+    rescue Errors::GryphonError => e
+      log(e.message, Logger::ERROR)
     end
 
     # @params base [String]
@@ -133,14 +135,14 @@ module Gryphon
 
     # @param file [Pathname]
     def delete_file(file)
-      @logger.info("Deleting #{file}")
+      log("Deleting #{file}")
       file.delete
 
       @compressors.each do |compressor|
-        compressed_file = Pathname.new("#{file}#{compressor.extname}")
+        compressed_file = Pathname("#{file}#{compressor.extname}")
         next unless compressed_file.exist?
 
-        @logger.info("Deleting #{compressed_file}")
+        log("Deleting #{compressed_file}")
         compressed_file.delete
       end
     end

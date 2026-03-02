@@ -3,20 +3,26 @@
 require 'logger'
 
 module Gryphon
-  # Mixing module used for logging messages to the console
   module Logging
-    class << self
-      # @return [Logger]
-      def create
-        logger = Logger.new($stdout)
+    include Kernel
 
-        # Create formatter that matches WebBricks log messages
-        logger.formatter = proc do |severity, datetime, _progname, msg|
-          date_format = datetime.strftime('%Y-%m-%d %H:%M:%S')
-          "[#{date_format}] #{severity.ljust(5)} #{msg}\n"
-        end
+    # @param msg [String]
+    # @param lvl [Integer]
+    def log(msg, lvl = Logger::INFO)
+      create if @logger.nil?
 
-        logger
+      @logger.add(lvl, msg)
+    end
+
+    private
+
+    def create
+      @logger = Logger.new($stdout)
+
+      # Create formatter that matches WebBricks log messages
+      @logger.formatter = proc do |severity, datetime, _progname, msg|
+        date_format = datetime.strftime('%Y-%m-%d %H:%M:%S')
+        "[#{date_format}] #{severity.ljust(5)} #{msg}\n"
       end
     end
   end

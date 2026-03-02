@@ -15,7 +15,6 @@ module Gryphon
 
       # @param src [Pathname]
       # @param dest [Pathname]
-      # @raise [Errors::YamlError]
       # @raise [Errors::ParseError]
       def process(src, dest)
         content = build_output(src)
@@ -62,8 +61,8 @@ module Gryphon
           end
 
         HtmlBeautifier.beautify(content, stop_on_errors: true)
-      rescue Mustache::Parser::SyntaxError => e
-        raise Errors::ParseError, "Failed to process mustache template #{file}. Reason:\n#{e}"
+      rescue Mustache::Parser::SyntaxError, Psych::SyntaxError => e
+        raise Errors::ParseError, "Failed to process mustache template #{file}. Reason: #{e.message}"
       rescue RuntimeError => e
         raise Errors::ParseError, "Failed to beautify template output #{file}. Reason: #{e.message}"
       end

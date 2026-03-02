@@ -2,10 +2,10 @@
 
 module Gryphon
   module Errors
-    class NotFoundError < StandardError; end
+    class GryphonError < StandardError; end
 
-    class ParseError < StandardError; end
+    class NotFoundError < GryphonError; end
 
-    class YamlError < StandardError; end
+    class ParseError < GryphonError; end
   end
 end

@@ -7,7 +7,7 @@ module Gryphon
     autoload :SassProcessor, 'gryphon/processors/sass_processor.rb'
 
     class << self
-      # @return [Array]
+      # @return [Array<Object>]
       def create
         asset_processor = AssetProcessor.new
         processors = Hash.new(asset_processor)

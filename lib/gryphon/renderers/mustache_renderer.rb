@@ -9,10 +9,11 @@ module Gryphon
     class MustacheRenderer < Mustache
       # @param _name [String]
       # @return [String]
+      # @raise [Psych::SyntaxError]
       def partial(_name)
-        name = @context[:yield]
+        name = context[:yield]
         path = "#{template_path}/#{name}.#{template_extension}"
-        docs = yaml_parse(name, File.read(path))
+        docs = YAML.safe_load_stream(File.read(path), filename: name)
 
         content = docs[0]
 
@@ -22,23 +23,6 @@ module Gryphon
         end
 
         content
-      end
-
-      private
-
-      # @param name [String]
-      # @param content [String]
-      # @return [Array]
-      def yaml_parse(name, content)
-        docs = []
-
-        YAML.safe_load_stream(content) do |doc|
-          docs << doc
-        end
-
-        docs
-      rescue Psych::SyntaxError => e
-        raise Errors::YamlError, "Encountered error while reading file #{name}. Reason: #{e.message}"
       end
     end
   end

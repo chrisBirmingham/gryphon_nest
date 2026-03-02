@@ -4,7 +4,11 @@ require 'optparse'
 
 module Gryphon
   class Cli
-    COMMANDS = %w[build clean serve]
+    COMMANDS = %w[
+      build
+      clean
+      serve
+    ].freeze
 
     def run
       options = {
@@ -18,14 +22,24 @@ module Gryphon
       execute(ARGV[0], options)
     rescue OptionParser::ParseError => e
       usage_error(e.message)
+    rescue Errors::GryphonError => e
+      warn e.message
+      exit 1
     end
 
     private
 
+    # @param command [String]
+    # @param options [Hash]
+    # @raise [OptionParser::ParseError]
     def execute(command, options)
       raise OptionParser::ParseError, "Unknown command #{command}" unless COMMANDS.include?(command)
 
-      nest = Gryphon::Nest.new(options[:compress], options[:force])
+      nest = Gryphon::Nest.new(
+        Processors.create,
+        options[:compress] ? Compressors.create : [],
+        options[:force]
+      )
 
       case command
       when 'clean'
@@ -41,14 +55,16 @@ module Gryphon
       end
     end
 
+    # @param options [Hash]
+    # @raise [OptionParser::ParseError]
     def parse!(options)
       OptionParser.new do |opts|
-        opts.banner = 'Usage: nest [build|serve|clean] [options]
+        opts.banner = 'Usage: gryphon [build|serve|clean] [options]
 Yet another static website builder using mustache and sass'
 
         opts.separator ''
 
-        opts.on('-c', '--compress', 'Create gzipped compressed versions of each file')
+        opts.on('-c', '--compress', 'Create compressed versions of each file')
 
         opts.on('-f', '--force', 'Force (re)build all files')
 
@@ -72,7 +88,7 @@ Yet another static website builder using mustache and sass'
     def usage_error(msg)
       warn "gryphon: #{msg}"
       warn "Try 'gryphon -h' for more information"
-      exit(1)
+      exit 1
     end
   end
 end
