@@ -20,8 +20,6 @@ module Gryphon
 
       parse!(options)
       execute(ARGV[0], options)
-    rescue OptionParser::ParseError => e
-      usage_error(e.message)
     rescue Errors::GryphonError => e
       warn e.message
       exit false
@@ -31,9 +29,9 @@ module Gryphon
 
     # @param command [String]
     # @param options [Hash]
-    # @raise [OptionParser::ParseError]
+    # @raise [Errors::GryphonError]
     def execute(command, options)
-      raise OptionParser::ParseError, "Unknown command #{command}" unless COMMANDS.include?(command)
+      raise Errors::GryphonError, to_usage_error("Unknown command #{command}") unless COMMANDS.include?(command)
 
       nest = Gryphon::Nest.new(
         Processors.create,
@@ -51,7 +49,7 @@ module Gryphon
     end
 
     # @param options [Hash]
-    # @raise [OptionParser::ParseError]
+    # @raise [Errors::GryphonError]
     def parse!(options)
       OptionParser.new do |opts|
         opts.banner = 'Usage: gryphon [build|serve|clean] [options]
@@ -77,13 +75,13 @@ Yet another static website builder using mustache and sass'
           exit
         end
       end.parse!(into: options)
+    rescue OptionParser::ParseError => e
+      raise Errors::GryphonError, to_usage_error(e.message)
     end
 
     # @param msg [String]
-    def usage_error(msg)
-      warn "gryphon: #{msg}
-Try 'gryphon -h' for more information"
-      exit false
-    end
+    # @return [String]
+    def to_usage_error(msg) =
+      "gryphon: #{msg}\nTry 'gryphon -h' for more information"
   end
 end

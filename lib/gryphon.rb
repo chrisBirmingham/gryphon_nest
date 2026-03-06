@@ -85,6 +85,7 @@ module Gryphon
 
     # @param src [Pathname]
     # @return [Pathname]
+    # @raise [Errors::GryphonError]
     def process_file(src)
       processor = @processors[src.extname]
       dest = processor.dest_name(src)
@@ -104,7 +105,7 @@ module Gryphon
     def compress_file(file)
       return if @compressors.empty?
 
-      return unless Compressors.can_compress?(file)
+      return unless Compressors.compressable?(file)
 
       log("Compressing #{file}")
       @compressors.each { |compressor| compressor.compress(file) }

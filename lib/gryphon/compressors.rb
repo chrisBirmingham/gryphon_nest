@@ -22,7 +22,7 @@ module Gryphon
 
       # @param file [Pathname]
       # @return [Boolean]
-      def can_compress?(file) =
+      def compressable?(file) =
         file.size >= 40 && COMPRESSABLE_FILETYPES.include?(file.extname)
 
       # return [Array<Object>]
@@ -31,7 +31,7 @@ module Gryphon
 
         begin
           require 'brotli'
-          compressors.append(BrotliCompressor.new)
+          compressors << BrotliCompressor.new
         rescue LoadError; end
 
         compressors
