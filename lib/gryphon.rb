@@ -132,9 +132,8 @@ module Gryphon
     # @params base [String]
     # @params match [String]
     # @return [Array<Pathname>]
-    def glob(base, match = '')
+    def glob(base, match = '') =
       Pathname.glob("#{base}/**/*#{match}").reject(&:directory?)
-    end
 
     # @param file [Pathname]
     def delete_file(file)

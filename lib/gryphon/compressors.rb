@@ -22,9 +22,8 @@ module Gryphon
 
       # @param file [Pathname]
       # @return [Boolean]
-      def can_compress?(file)
+      def can_compress?(file) =
         file.size >= 40 && COMPRESSABLE_FILETYPES.include?(file.extname)
-      end
 
       # return [Array<Object>]
       def create

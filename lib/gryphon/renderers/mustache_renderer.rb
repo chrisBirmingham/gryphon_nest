@@ -15,12 +15,9 @@ module Gryphon
         path = "#{template_path}/#{name}.#{template_extension}"
         docs = YAML.safe_load_stream(File.read(path), filename: name)
 
-        content = docs[0]
+        content = docs[1] || docs[0]
 
-        unless docs[1].nil?
-          context.push(docs[0])
-          content = docs[1]
-        end
+        context.push(docs[0]) unless docs[1].nil?
 
         content
       end
