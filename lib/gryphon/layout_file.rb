@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module GryphonNest
+module Gryphon
   # Wrapper class for operations performed on the layout.yaml file
   class LayoutFile
     # @param path [Pathname]
@@ -11,14 +11,10 @@ module GryphonNest
     end
 
     # @return [Boolean]
-    def exist?
-      @path.exist?
-    end
+    def exist? = @path.exist?
 
     # @return [Time]
-    def mtime
-      @path.mtime
-    end
+    def mtime = @path.mtime
 
     # @return [String]
     def content

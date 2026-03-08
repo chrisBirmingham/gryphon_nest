@@ -5,72 +5,62 @@ require 'listen'
 require 'pathname'
 require 'webrick'
 
-module GryphonNest
-  autoload :Compressors, 'gryphon_nest/compressors'
-  autoload :Errors, 'gryphon_nest/errors'
-  autoload :LayoutFile, 'gryphon_nest/layout_file'
-  autoload :Logging, 'gryphon_nest/logging'
-  autoload :Processors, 'gryphon_nest/processors'
-  autoload :Renderers, 'gryphon_nest/renderers'
-  autoload :VERSION, 'gryphon_nest/version'
+module Gryphon
+  autoload :Cli, 'gryphon/cli'
+  autoload :Compressors, 'gryphon/compressors'
+  autoload :Errors, 'gryphon/errors'
+  autoload :LayoutFile, 'gryphon/layout_file'
+  autoload :Logging, 'gryphon/logging'
+  autoload :Processors, 'gryphon/processors'
+  autoload :Renderers, 'gryphon/renderers'
+  autoload :VERSION, 'gryphon/version'
 
   BUILD_DIR = '_site'
   CONTENT_DIR = 'content'
-  DATA_DIR = 'data'
   TEMPLATE_EXT = '.mustache'
   LAYOUT_FILE = 'layout.mustache'
 
   class Nest
-    # @param compress [Boolean]
+    include Logging
+
+    # @param processors [Array<Object>]
+    # @param compressors [Array<Object>]
     # @param force [Boolean]
-    def initialize(compress, force)
-      @processors = Processors.create
-      @logger = Logging.create
+    def initialize(processors, compressors, force)
+      @processors = processors
+      @compressors = compressors
       @force = force
-      @compressors = compress ? Compressors.create : []
       @modifications = 0
     end
 
-    # @raise [Errors::NotFoundError]
+    # @raise [Errors::GryphonError]
     def build
       unless Dir.exist?(CONTENT_DIR)
         raise Errors::NotFoundError, "Content directory doesn't exist in the current directory"
       end
 
-      Dir.mkdir(BUILD_DIR) unless Dir.exist?(BUILD_DIR)
-
+      FileUtils.mkdir_p(BUILD_DIR)
       existing_files = glob(BUILD_DIR, '{!.gz,!.br}')
       content_files = glob(CONTENT_DIR)
       processed_files = content_files.collect { |src| process_file(src) }
       files_to_delete = existing_files.difference(processed_files)
       files_to_delete.each { |file| delete_file(file) }
 
-      @logger.info('No changes detected') if @modifications.zero? && files_to_delete.empty?
+      log('No changes detected') if @modifications.zero? && files_to_delete.empty?
     end
 
     def clean
       FileUtils.remove_dir(BUILD_DIR, true)
-      @logger.info('Removed build dir')
-    end
-
-    def watch
-      @logger.info('Watching for content changes')
-
-      # Bypass modification checks, we already know the files been changed
-      @force = true
-
-      only = [/^#{CONTENT_DIR}/, /^#{DATA_DIR}/, /^#{LAYOUT_FILE}$/]
-      Listen.to('.', relative: true, only: only) do |modified, added, removed|
-        modified.union(added).each { |file| process_changes(file) }
-
-        removed.each { |file| process_changes(file, removal: true) }
-      end.start
+      log('Removed build dir')
     end
 
     # @param port [Integer]
-    def serve(port)
-      @logger.info("Running local server on #{port}")
-      server = WEBrick::HTTPServer.new(Port: port, DocumentRoot: BUILD_DIR)
+    # @param monitor [Boolean]
+    def serve(port, monitor)
+      watch if monitor
+
+      log("Running local server on #{port}")
+      server = WEBrick::HTTPServer.new(Port: port, DocumentRoot: BUILD_DIR, AccessLog: [])
       # Trap ctrl c so we don't get the horrible stack trace
       trap('INT') { server.shutdown }
       server.start
@@ -78,8 +68,23 @@ module GryphonNest
 
     private
 
+    def watch
+      log('Watching for content changes')
+
+      # Bypass modification checks, we already know the files been changed
+      @force = true
+
+      only = [/^#{CONTENT_DIR}/, /^#{LAYOUT_FILE}$/]
+      Listen.to('.', relative: true, only: only) do |modified, added, removed|
+        modified.union(added).each { |file| process_changes(file) }
+
+        removed.each { |file| process_changes(file, removal: true) }
+      end.start
+    end
+
     # @param src [Pathname]
     # @return [Pathname]
+    # @raise [Errors::GryphonError]
     def process_file(src)
       processor = @processors[src.extname]
       dest = processor.dest_name(src)
@@ -87,7 +92,7 @@ module GryphonNest
       if @force || processor.file_modified?(src, dest)
         @modifications += 1
         msg = File.exist?(dest) ? 'Recreating' : 'Creating'
-        @logger.info("#{msg} #{dest}")
+        log("#{msg} #{dest}")
         processor.process(src, dest)
         compress_file(dest)
       end
@@ -99,9 +104,9 @@ module GryphonNest
     def compress_file(file)
       return if @compressors.empty?
 
-      return unless Compressors.can_compress?(file)
+      return unless Compressors.compressable?(file)
 
-      @logger.info("Compressing #{file}")
+      log("Compressing #{file}")
       @compressors.each { |compressor| compressor.compress(file) }
     end
 
@@ -113,46 +118,32 @@ module GryphonNest
       else
         path = Pathname(src)
 
-        if src.start_with?(DATA_DIR)
-          process_data_file(path)
-        elsif removal
+        if removal
           path = @processors[path.extname].dest_name(path)
           delete_file(path)
         else
           process_file(path)
         end
       end
-    rescue StandardError => e
-      @logger.error(e.message)
-    end
-
-    # @param src [Pathname]
-    # @return [Pathname]
-    def process_data_file(src)
-      src = src.sub(DATA_DIR, CONTENT_DIR).sub_ext(TEMPLATE_EXT)
-
-      return unless src.exist?
-
-      process_file(src)
+    rescue Errors::GryphonError => e
+      log(e.message, Logger::ERROR)
     end
 
     # @params base [String]
     # @params match [String]
     # @return [Array<Pathname>]
-    def glob(base, match = '')
-      Pathname.glob("#{base}/**/*#{match}").reject(&:directory?)
-    end
+    def glob(base, match = '') = Pathname.glob("#{base}/**/*#{match}").reject(&:directory?)
 
     # @param file [Pathname]
     def delete_file(file)
-      @logger.info("Deleting #{file}")
+      log("Deleting #{file}")
       file.delete
 
       @compressors.each do |compressor|
-        compressed_file = "#{file}#{compressor.extname}"
+        compressed_file = Pathname("#{file}#{compressor.extname}")
         next unless compressed_file.exist?
 
-        @logger.info("Deleting #{compressed_file}")
+        log("Deleting #{compressed_file}")
         compressed_file.delete
       end
     end

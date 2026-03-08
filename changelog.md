@@ -1,5 +1,10 @@
 # Changelog
 
+## Gryphon Version 1.0.0
+
+* Renamed project to Gryphon
+* Removed data files and replaced with yaml frontmatter
+
 ## Version 4.2.1
 
 * Added optional brotli compression support

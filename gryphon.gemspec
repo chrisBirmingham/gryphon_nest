@@ -1,27 +1,28 @@
 # frozen_string_literal: true
 
-require_relative 'lib/gryphon_nest/version'
+require_relative 'lib/gryphon/version'
 
 name = File.basename(__FILE__, '.gemspec')
 
 Gem::Specification.new do |spec|
   spec.name = name
-  spec.version = GryphonNest::VERSION
+  spec.version = Gryphon::VERSION
   spec.authors = ['Christopher Birmingham']
   spec.email = ['chris.birmingham@hotmail.co.uk']
 
   spec.summary = 'Yet another static site generator'
   spec.description = 'A slightly opinionated static website generator for those who like working in html and mustache'
-  spec.homepage = 'https://github.com/chrisBirmingham/gryphon_nest'
-  spec.required_ruby_version = '>= 2.6.0'
+  spec.homepage = 'https://github.com/chrisBirmingham/gryphon'
+  spec.required_ruby_version = '>= 3.0.0'
 
   spec.metadata = {
     'homepage_uri' => spec.homepage,
-    'source_code_uri' => spec.homepage
+    'source_code_uri' => spec.homepage,
+    'rubygems_mfa_required' => 'true'
   }
 
   spec.files = Dir['lib/**/*', 'LICENSE']
-  spec.executables << 'nest'
+  spec.executables << 'gryphon'
   spec.require_paths = ['lib']
   spec.license = 'Unlicense'
 

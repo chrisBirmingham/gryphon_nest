@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-source 'https://rubygems.org'
+source 'https://gem.coop'
 
-# Specify your gem's dependencies in gryphon_nest.gemspec
 gemspec

@@ -2,7 +2,7 @@
 
 require 'fileutils'
 
-module GryphonNest
+module Gryphon
   module Processors
     # Default file processor. Moves files from source to destination
     class AssetProcessor
@@ -15,9 +15,7 @@ module GryphonNest
 
       # @param src [Pathname]
       # @return [Pathname]
-      def dest_name(src)
-        src.sub(CONTENT_DIR, BUILD_DIR)
-      end
+      def dest_name(src) = src.sub(CONTENT_DIR, BUILD_DIR)
 
       # @param src [Pathname]
       # @param des [Pathname]

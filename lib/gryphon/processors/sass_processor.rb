@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 
-require 'sass-embedded'
-
-module GryphonNest
+module Gryphon
   module Processors
+    # Renders a sass file into a css file
     class SassProcessor
       # @param src [Pathname]
       # @param dest [Pathname]
@@ -12,14 +11,12 @@ module GryphonNest
         result = Sass.compile(src)
         File.write(dest, result.css)
       rescue Sass::CompileError => e
-        raise Errors::ParseError, "Failed to process sass style sheet #{src}. Reason:\n#{e.full_message}"
+        raise Errors::ParseError, "Failed to process sass style sheet #{src}. Reason: #{e.full_message}"
       end
 
       # @param src [Pathname]
       # @return [Pathname]
-      def dest_name(src)
-        src.sub(CONTENT_DIR, BUILD_DIR).sub_ext('.css')
-      end
+      def dest_name(src) = src.sub(CONTENT_DIR, BUILD_DIR).sub_ext('.css')
 
       # @param src [Pathname]
       # @param des [Pathname]

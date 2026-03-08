@@ -1,4 +1,4 @@
-# Gryphon Nest
+# Gryphon formally Gryphon Nest
 
 Yet another static website builder. Starting as a simple ruby script to build my own website it's now been converted into a gem for others to use. The main audience of this gem is those who like to work with HTML and [Mustache](https://mustache.github.io/), so probably just me :)
 
@@ -7,13 +7,13 @@ Yet another static website builder. Starting as a simple ruby script to build my
 To install run:
 
 ```commandline
-[sudo] gem install gryphon_nest
+[sudo] gem install gryphon
 ```
 
 Or include in your websites `Gemfile`
 
 ```ruby
-gem 'gryphon_nest', '~> 4.2'
+gem 'gryphon', '~> 1.0'
 ```
 
 And run
@@ -24,7 +24,7 @@ bundle install
 
 ## Usage
 
-Gryphon provides the executable `nest` which currently supports these commands:
+Gryphon provides the executable `gryphon` which currently supports these commands:
 
 * build: Generates your website and stores it in the `_site` folder.
 
@@ -54,8 +54,6 @@ project_directory/
         index.mustache
         main.css
         favicon.ico
-    data/
-        index.yaml
     layout.mustache
 ```
 
@@ -68,6 +66,17 @@ When run, gryphon will first check to see if a file exists inside the `_site` fo
 If a template file contains invalid mustache or the resulting html is invalid, gryphon stops processing and exits with an non-zero exit code.
 
 If a file is added, modified or deleted while nest is watching for file changes, those changes will be applied in real time to the currently running server.
+
+Mustache templates can optionally contain yaml frontmatter like so:
+
+```yaml
+---
+title: Hello world
+---
+{{ title }}
+```
+
+If provided, the front matter will be passed to Mustache as it's template context and used in the resulting output.
 
 ### Layout
 
@@ -92,12 +101,6 @@ An example of this file is:
 
 The `{{> yield }}` block is required and will be replaced with the content of the transformed content file.
 
-### Data
-
-An optional folder containing yaml files providing context for mustache when it renders a template file. Gryphon will use the data file with the same basename as the context file it's currently processing eg `contact.mustache -> contact.yaml`. The provided context will also be available to the layout file if one is provided.
-
-If a data file is added, modified or deleted while gryphon is watching for file changes, the associated html page will be regenerated should the mustache template exist.
-
 ## Compression
 
 When the `-c` option is provided, gryphon will compress text files using gzip compression. This is intended for use with web servers that support sending compressed content directly such as nginx via it's [gzip_static module](https://nginx.org/en/docs/http/ngx_http_gzip_static_module.html).
@@ -106,4 +109,4 @@ If the [brotli](https://github.com/miyucy/brotli) gem is installed, gryphon will
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/chrisBirmingham/gryphon_nest.
+Bug reports and pull requests are welcome on GitHub at https://github.com/chrisBirmingham/gryphon.
