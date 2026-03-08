@@ -4,6 +4,7 @@ require 'zlib'
 
 module Gryphon
   module Compressors
+    # Class for compressing files using zlib
     class GzipCompressor
       # @return [String]
       def extname = '.gz'
@@ -15,7 +16,7 @@ module Gryphon
         Zlib::GzipWriter.open(compressed, Zlib::BEST_COMPRESSION) do |gz|
           gz.mtime = file.mtime
           gz.orig_name = file.to_s
-          gz.write IO.binread(file)
+          gz.write(File.binread(file))
         end
       end
     end

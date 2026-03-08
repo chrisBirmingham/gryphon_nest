@@ -1,8 +1,9 @@
-# frozen_literal_string: true
+# frozen_string_literal: true
 
 require 'optparse'
 
 module Gryphon
+  # Command line parsing and execution class
   class Cli
     COMMANDS = %w[
       build
@@ -81,7 +82,6 @@ Yet another static website builder using mustache and sass'
 
     # @param msg [String]
     # @return [String]
-    def to_usage_error(msg) =
-      "gryphon: #{msg}\nTry 'gryphon -h' for more information"
+    def to_usage_error(msg) = "gryphon: #{msg}\nTry 'gryphon -h' for more information"
   end
 end

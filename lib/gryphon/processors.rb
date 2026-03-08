@@ -21,7 +21,9 @@ module Gryphon
           sass = Processors::SassProcessor.new
           processors['.scss'] = sass
           processors['.sass'] = sass
-        rescue LoadError; end
+        rescue LoadError
+          # Do nothing
+        end
 
         processors
       end

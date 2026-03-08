@@ -6,7 +6,7 @@ module Gryphon
     autoload :GzipCompressor, 'gryphon/compressors/gzip_compressor'
 
     class << self
-      COMPRESSABLE_FILETYPES = %w[
+      COMPRESSABLE = %w[
         .html
         .htm
         .xhtml
@@ -22,8 +22,7 @@ module Gryphon
 
       # @param file [Pathname]
       # @return [Boolean]
-      def compressable?(file) =
-        file.size >= 40 && COMPRESSABLE_FILETYPES.include?(file.extname)
+      def compressable?(file) = file.size >= 40 && COMPRESSABLE.include?(file.extname)
 
       # return [Array<Object>]
       def create
@@ -32,7 +31,9 @@ module Gryphon
         begin
           require 'brotli'
           compressors << BrotliCompressor.new
-        rescue LoadError; end
+        rescue LoadError
+          # Do nothing
+        end
 
         compressors
       end

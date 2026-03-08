@@ -39,8 +39,7 @@ module Gryphon
         raise Errors::NotFoundError, "Content directory doesn't exist in the current directory"
       end
 
-      Dir.mkdir(BUILD_DIR) unless Dir.exist?(BUILD_DIR)
-
+      FileUtils.mkdir_p(BUILD_DIR)
       existing_files = glob(BUILD_DIR, '{!.gz,!.br}')
       content_files = glob(CONTENT_DIR)
       processed_files = content_files.collect { |src| process_file(src) }
@@ -133,8 +132,7 @@ module Gryphon
     # @params base [String]
     # @params match [String]
     # @return [Array<Pathname>]
-    def glob(base, match = '') =
-      Pathname.glob("#{base}/**/*#{match}").reject(&:directory?)
+    def glob(base, match = '') = Pathname.glob("#{base}/**/*#{match}").reject(&:directory?)
 
     # @param file [Pathname]
     def delete_file(file)

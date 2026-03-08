@@ -55,7 +55,7 @@ module Gryphon
       def build_output(file)
         content =
           if @layout_file.exist?
-            @renderer.render(@layout_file.content, {yield: file.basename(TEMPLATE_EXT)})
+            @renderer.render(@layout_file.content, { yield: file.basename(TEMPLATE_EXT) })
           else
             @renderer.render_file(file)
           end

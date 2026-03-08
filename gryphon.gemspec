@@ -17,7 +17,8 @@ Gem::Specification.new do |spec|
 
   spec.metadata = {
     'homepage_uri' => spec.homepage,
-    'source_code_uri' => spec.homepage
+    'source_code_uri' => spec.homepage,
+    'rubygems_mfa_required' => 'true'
   }
 
   spec.files = Dir['lib/**/*', 'LICENSE']

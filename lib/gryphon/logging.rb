@@ -3,6 +3,7 @@
 require 'logger'
 
 module Gryphon
+  # Mixin class for setting up log creation and logging
   module Logging
     include Kernel
 
