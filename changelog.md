@@ -2,7 +2,7 @@
 
 ## Version 1.0.1
 
-* Load frontmatter before parsing partials
+* Load frontmatter before parsing partials. Fixes an issue where the layout file doesn't get the context of the partials
 
 ## Gryphon Version 1.0.0
 
