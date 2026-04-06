@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 1.0.1
+
+* Load frontmatter before parsing partials
+
 ## Gryphon Version 1.0.0
 
 * Renamed project to Gryphon
