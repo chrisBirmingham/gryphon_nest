@@ -53,11 +53,13 @@ module Gryphon
       # @return [String]
       # @raise [Errors::ParseError]
       def build_output(file)
+        docs = parse_file(file)
         content =
           if @layout_file.exist?
-            @renderer.render(@layout_file.content, { yield: file.basename(TEMPLATE_EXT) })
+            docs[0][:yield] = docs[1]
+            @renderer.render(@layout_file.content, docs[0])
           else
-            @renderer.render_file(file)
+            @renderer.render(docs[1], docs[0])
           end
 
         HtmlBeautifier.beautify(content, stop_on_errors: true)
@@ -72,6 +74,17 @@ module Gryphon
       def write_file(path, content)
         path.dirname.mkpath
         path.write(content)
+      end
+
+      # @param file [Pathname]
+      # @return [Array]
+      # @raise [Psych::SyntaxError]
+      def parse_file(file)
+        docs = YAML.safe_load_stream(File.read(file), filename: file)
+
+        docs = [{}, docs[0]] unless docs[1]
+
+        docs
       end
     end
   end

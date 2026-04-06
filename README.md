@@ -105,7 +105,7 @@ The `{{> yield }}` block is required and will be replaced with the content of th
 
 When the `-c` option is provided, gryphon will compress text files using gzip compression. This is intended for use with web servers that support sending compressed content directly such as nginx via it's [gzip_static module](https://nginx.org/en/docs/http/ngx_http_gzip_static_module.html).
 
-If the [brotli](https://github.com/miyucy/brotli) gem is installed, gryphon will also created a brotli compressed version of said file.
+If the [brotli](https://github.com/miyucy/brotli) gem is installed, gryphon will also create a brotli compressed version of said file.
 
 ## Contributing
 
